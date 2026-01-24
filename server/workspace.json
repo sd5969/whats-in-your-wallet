@@ -1,0 +1,278 @@
+{
+  "_id": "6974f4baf34f6cbf8c11d749",
+  "categories": [
+    {
+      "key": "dining",
+      "label": "Dining"
+    },
+    {
+      "key": "groceries",
+      "label": "Groceries"
+    },
+    {
+      "key": "travel",
+      "label": "Travel"
+    },
+    {
+      "key": "rent",
+      "label": "Rent"
+    },
+    {
+      "key": "gas",
+      "label": "Gas"
+    },
+    {
+      "key": "streaming",
+      "label": "Streaming"
+    },
+    {
+      "key": "misc",
+      "label": "Everything Else"
+    }
+  ],
+  "cards": [
+    {
+      "id": "bilt-blue",
+      "name": "Bilt 2.0 Blue",
+      "annualFee": 0,
+      "cpp": 0.015,
+      "rates": {
+        "rent": 1,
+        "dining": 3,
+        "groceries": 2,
+        "travel": 2,
+        "gas": 1,
+        "streaming": 1,
+        "misc": 1
+      },
+      "benefits": [
+        {
+          "id": "bilt-rent",
+          "label": "Rent Day bonuses",
+          "value": 120,
+          "enabled": false
+        },
+        {
+          "id": "bilt-protect",
+          "label": "Cell phone protection",
+          "value": 120,
+          "enabled": false
+        },
+        {
+          "id": "bilt-trip",
+          "label": "Trip protections",
+          "value": 80,
+          "enabled": false
+        }
+      ]
+    },
+    {
+      "id": "bilt-obsidian",
+      "name": "Bilt 2.0 Obsidian",
+      "annualFee": 0,
+      "cpp": 0.015,
+      "rates": {
+        "rent": 1,
+        "dining": 3,
+        "groceries": 2,
+        "travel": 2,
+        "gas": 1,
+        "streaming": 1,
+        "misc": 1
+      },
+      "benefits": [
+        {
+          "id": "bilt-rent-obsidian",
+          "label": "Rent Day bonuses",
+          "value": 120,
+          "enabled": true
+        },
+        {
+          "id": "bilt-protect-obsidian",
+          "label": "Cell phone protection",
+          "value": 120,
+          "enabled": false
+        },
+        {
+          "id": "bilt-trip-obsidian",
+          "label": "Trip protections",
+          "value": 80,
+          "enabled": false
+        }
+      ]
+    },
+    {
+      "id": "bilt-palladium",
+      "name": "Bilt 2.0 Palladium",
+      "annualFee": 0,
+      "cpp": 0.015,
+      "rates": {
+        "rent": 1,
+        "dining": 3,
+        "groceries": 2,
+        "travel": 2,
+        "gas": 1,
+        "streaming": 1,
+        "misc": 1
+      },
+      "benefits": [
+        {
+          "id": "bilt-rent-palladium",
+          "label": "Rent Day bonuses",
+          "value": 120,
+          "enabled": true
+        },
+        {
+          "id": "bilt-protect-palladium",
+          "label": "Cell phone protection",
+          "value": 120,
+          "enabled": false
+        },
+        {
+          "id": "bilt-trip-palladium",
+          "label": "Trip protections",
+          "value": 80,
+          "enabled": false
+        }
+      ]
+    },
+    {
+      "id": "amex-gold",
+      "name": "Amex Gold",
+      "annualFee": 250,
+      "cpp": 0.018,
+      "rates": {
+        "rent": 1,
+        "dining": 4,
+        "groceries": 4,
+        "travel": 3,
+        "gas": 1,
+        "streaming": 1,
+        "misc": 1
+      },
+      "benefits": [
+        {
+          "id": "amex-dining",
+          "label": "Dining credits",
+          "value": 120,
+          "enabled": true
+        },
+        {
+          "id": "amex-uber",
+          "label": "Uber Cash",
+          "value": 120,
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "id": "venture-x",
+      "name": "Capital One Venture X",
+      "annualFee": 395,
+      "cpp": 0.015,
+      "rates": {
+        "rent": 1,
+        "dining": 2,
+        "groceries": 2,
+        "travel": 5,
+        "gas": 2,
+        "streaming": 2,
+        "misc": 2
+      },
+      "benefits": [
+        {
+          "id": "vx-credit",
+          "label": "Annual travel credit",
+          "value": 300,
+          "enabled": true
+        },
+        {
+          "id": "vx-bonus",
+          "label": "Anniversary miles",
+          "value": 100,
+          "enabled": true
+        },
+        {
+          "id": "vx-lounge",
+          "label": "Lounge access",
+          "value": 200,
+          "enabled": false
+        }
+      ]
+    },
+    {
+      "id": "csp",
+      "name": "Chase Sapphire Preferred",
+      "annualFee": 95,
+      "cpp": 0.015,
+      "rates": {
+        "rent": 1,
+        "dining": 3,
+        "groceries": 3,
+        "travel": 2,
+        "gas": 1,
+        "streaming": 3,
+        "misc": 1
+      },
+      "benefits": [
+        {
+          "id": "csp-hotel",
+          "label": "Annual hotel credit",
+          "value": 50,
+          "enabled": true
+        },
+        {
+          "id": "csp-dash",
+          "label": "DashPass value",
+          "value": 96,
+          "enabled": false
+        }
+      ]
+    },
+    {
+      "id": "apple-card",
+      "name": "Apple Card",
+      "annualFee": 0,
+      "cpp": 0.01,
+      "rates": {
+        "rent": 1,
+        "dining": 2,
+        "groceries": 2,
+        "travel": 2,
+        "gas": 2,
+        "streaming": 2,
+        "misc": 1
+      },
+      "benefits": [
+        {
+          "id": "apple-daily",
+          "label": "Daily Cash (Apple Pay)",
+          "value": 0,
+          "enabled": true
+        }
+      ]
+    }
+  ],
+  "spend": {
+    "dining": 10100,
+    "groceries": 1200,
+    "travel": 7000,
+    "rent": 49500,
+    "gas": 300,
+    "streaming": 0,
+    "misc": 14200
+  },
+  "assignments": {
+    "dining": "bilt-blue",
+    "groceries": "bilt-blue",
+    "travel": "bilt-blue",
+    "rent": "bilt-blue",
+    "gas": "bilt-blue",
+    "streaming": "bilt-blue",
+    "misc": "bilt-blue"
+  },
+  "createdAt": "2026-01-24T16:35:06.198Z",
+  "updatedAt": "2026-01-24T17:23:09.859Z",
+  "__v": 0,
+  "spendInterval": "annual"
+}
