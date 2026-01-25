@@ -16,19 +16,34 @@ const cards = [
     annualFee: 0,
     cpp: 0.015,
     rates: {
-      rent: 1,
-      dining: 3,
-      groceries: 2,
-      flights: 2,
-      travelOther: 2,
+      rent: 0,
+      dining: 1,
+      groceries: 1,
+      flights: 1,
+      travelOther: 1,
       gas: 1,
       streaming: 1,
       misc: 1
     },
     benefits: [
-      { id: "bilt-rent", label: "Rent Day bonuses", value: 120, enabled: true },
-      { id: "bilt-protect", label: "Cell phone protection", value: 120, enabled: false },
-      { id: "bilt-trip", label: "Trip protections", value: 80, enabled: false }
+      {
+        id: "bilt-rent",
+        label: "4% back in Bilt Cash (everyday spend)",
+        value: 0,
+        enabled: true
+      },
+      {
+        id: "bilt-protect",
+        label: "No foreign transaction fees",
+        value: 0,
+        enabled: true
+      },
+      {
+        id: "bilt-trip",
+        label: "$100 Bilt Cash on account opening",
+        value: 100,
+        enabled: true
+      }
     ]
   },
   {
@@ -37,9 +52,9 @@ const cards = [
     annualFee: 95,
     cpp: 0.015,
     rates: {
-      rent: 1,
+      rent: 0,
       dining: 3,
-      groceries: 2,
+      groceries: 3,
       flights: 2,
       travelOther: 2,
       gas: 1,
@@ -47,9 +62,24 @@ const cards = [
       misc: 1
     },
     benefits: [
-      { id: "bilt-rent-obsidian", label: "Rent Day bonuses", value: 120, enabled: true },
-      { id: "bilt-protect-obsidian", label: "Cell phone protection", value: 120, enabled: false },
-      { id: "bilt-trip-obsidian", label: "Trip protections", value: 80, enabled: false }
+      {
+        id: "bilt-rent-obsidian",
+        label: "4% back in Bilt Cash (everyday spend)",
+        value: 0,
+        enabled: true
+      },
+      {
+        id: "bilt-protect-obsidian",
+        label: "$100 annual Bilt Travel hotel credits",
+        value: 100,
+        enabled: true
+      },
+      {
+        id: "bilt-trip-obsidian",
+        label: "$200 Bilt Cash on account opening",
+        value: 200,
+        enabled: true
+      }
     ]
   },
   {
@@ -58,32 +88,47 @@ const cards = [
     annualFee: 495,
     cpp: 0.015,
     rates: {
-      rent: 1,
-      dining: 3,
+      rent: 0,
+      dining: 2,
       groceries: 2,
       flights: 2,
       travelOther: 2,
-      gas: 1,
-      streaming: 1,
-      misc: 1
+      gas: 2,
+      streaming: 2,
+      misc: 2
     },
     benefits: [
-      { id: "bilt-rent-palladium", label: "Rent Day bonuses", value: 120, enabled: true },
-      { id: "bilt-protect-palladium", label: "Cell phone protection", value: 120, enabled: false },
-      { id: "bilt-trip-palladium", label: "Trip protections", value: 80, enabled: false }
+      {
+        id: "bilt-rent-palladium",
+        label: "$600 annual credits ($400 hotel + $200 Bilt Cash)",
+        value: 600,
+        enabled: true
+      },
+      {
+        id: "bilt-protect-palladium",
+        label: "Priority Pass lounge access",
+        value: 0,
+        enabled: true
+      },
+      {
+        id: "bilt-trip-palladium",
+        label: "$300 Bilt Cash on account opening",
+        value: 300,
+        enabled: true
+      }
     ]
   },
   {
     id: "amex-gold",
     name: "Amex Gold",
-    annualFee: 250,
+    annualFee: 325,
     cpp: 0.018,
     rates: {
       rent: 1,
       dining: 4,
       groceries: 4,
       flights: 3,
-      travelOther: 1,
+      travelOther: 3,
       gas: 1,
       streaming: 1,
       misc: 1
@@ -111,7 +156,7 @@ const cards = [
     benefits: [
       { id: "vx-credit", label: "Annual travel credit", value: 300, enabled: true },
       { id: "vx-bonus", label: "Anniversary miles", value: 100, enabled: true },
-      { id: "vx-lounge", label: "Lounge access", value: 0, enabled: false }
+      { id: "vx-lounge", label: "Lounge access", value: 200, enabled: true }
     ]
   },
   {
@@ -131,7 +176,7 @@ const cards = [
     },
     benefits: [
       { id: "csp-hotel", label: "Annual hotel credit", value: 50, enabled: true },
-      { id: "csp-dash", label: "DashPass value", value: 96, enabled: false }
+      { id: "csp-dash", label: "DashPass value", value: 96, enabled: true }
     ]
   },
   {
@@ -147,7 +192,7 @@ const cards = [
       travelOther: 2,
       gas: 2,
       streaming: 2,
-      misc: 1
+      misc: 2
     },
     benefits: [
       { id: "apple-daily", label: "Daily Cash (Apple Pay)", value: 0, enabled: true }
@@ -156,14 +201,14 @@ const cards = [
 ];
 
 const spend = {
-  dining: 4200,
-  groceries: 5200,
-  flights: 1900,
-  travelOther: 1900,
-  rent: 18000,
-  gas: 1400,
-  streaming: 600,
-  misc: 7200
+  dining: 10100,
+  groceries: 1200,
+  flights: 3500,
+  travelOther: 3500,
+  rent: 49500,
+  gas: 300,
+  streaming: 0,
+  misc: 14200
 };
 
 const assignments = categories.reduce((acc, category) => {

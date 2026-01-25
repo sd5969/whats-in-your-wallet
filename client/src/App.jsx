@@ -19,19 +19,34 @@ const initialCards = [
     annualFee: 0,
     cpp: 0.015,
     rates: {
-      rent: 1,
-      dining: 3,
-      groceries: 2,
-      flights: 2,
-      travelOther: 2,
+      rent: 0,
+      dining: 1,
+      groceries: 1,
+      flights: 1,
+      travelOther: 1,
       gas: 1,
       streaming: 1,
       misc: 1
     },
     benefits: [
-      { id: "bilt-rent", label: "Rent Day bonuses", value: 120, enabled: true },
-      { id: "bilt-protect", label: "Cell phone protection", value: 120, enabled: false },
-      { id: "bilt-trip", label: "Trip protections", value: 80, enabled: false }
+      {
+        id: "bilt-rent",
+        label: "4% back in Bilt Cash (everyday spend)",
+        value: 0,
+        enabled: true
+      },
+      {
+        id: "bilt-protect",
+        label: "No foreign transaction fees",
+        value: 0,
+        enabled: true
+      },
+      {
+        id: "bilt-trip",
+        label: "$100 Bilt Cash on account opening",
+        value: 100,
+        enabled: true
+      }
     ]
   },
   {
@@ -40,9 +55,9 @@ const initialCards = [
     annualFee: 95,
     cpp: 0.015,
     rates: {
-      rent: 1,
+      rent: 0,
       dining: 3,
-      groceries: 2,
+      groceries: 3,
       flights: 2,
       travelOther: 2,
       gas: 1,
@@ -50,9 +65,24 @@ const initialCards = [
       misc: 1
     },
     benefits: [
-      { id: "bilt-rent-obsidian", label: "Rent Day bonuses", value: 120, enabled: true },
-      { id: "bilt-protect-obsidian", label: "Cell phone protection", value: 120, enabled: false },
-      { id: "bilt-trip-obsidian", label: "Trip protections", value: 80, enabled: false }
+      {
+        id: "bilt-rent-obsidian",
+        label: "4% back in Bilt Cash (everyday spend)",
+        value: 0,
+        enabled: true
+      },
+      {
+        id: "bilt-protect-obsidian",
+        label: "$100 annual Bilt Travel hotel credits",
+        value: 100,
+        enabled: true
+      },
+      {
+        id: "bilt-trip-obsidian",
+        label: "$200 Bilt Cash on account opening",
+        value: 200,
+        enabled: true
+      }
     ]
   },
   {
@@ -61,32 +91,47 @@ const initialCards = [
     annualFee: 495,
     cpp: 0.015,
     rates: {
-      rent: 1,
-      dining: 3,
+      rent: 0,
+      dining: 2,
       groceries: 2,
       flights: 2,
       travelOther: 2,
-      gas: 1,
-      streaming: 1,
-      misc: 1
+      gas: 2,
+      streaming: 2,
+      misc: 2
     },
     benefits: [
-      { id: "bilt-rent-palladium", label: "Rent Day bonuses", value: 120, enabled: true },
-      { id: "bilt-protect-palladium", label: "Cell phone protection", value: 120, enabled: false },
-      { id: "bilt-trip-palladium", label: "Trip protections", value: 80, enabled: false }
+      {
+        id: "bilt-rent-palladium",
+        label: "$600 annual credits ($400 hotel + $200 Bilt Cash)",
+        value: 600,
+        enabled: true
+      },
+      {
+        id: "bilt-protect-palladium",
+        label: "Priority Pass lounge access",
+        value: 0,
+        enabled: true
+      },
+      {
+        id: "bilt-trip-palladium",
+        label: "$300 Bilt Cash on account opening",
+        value: 300,
+        enabled: true
+      }
     ]
   },
   {
     id: "amex-gold",
     name: "Amex Gold",
-    annualFee: 250,
+    annualFee: 325,
     cpp: 0.018,
     rates: {
       rent: 1,
       dining: 4,
       groceries: 4,
       flights: 3,
-      travelOther: 1,
+      travelOther: 3,
       gas: 1,
       streaming: 1,
       misc: 1
@@ -114,7 +159,7 @@ const initialCards = [
     benefits: [
       { id: "vx-credit", label: "Annual travel credit", value: 300, enabled: true },
       { id: "vx-bonus", label: "Anniversary miles", value: 100, enabled: true },
-      { id: "vx-lounge", label: "Lounge access", value: 0, enabled: false }
+      { id: "vx-lounge", label: "Lounge access", value: 200, enabled: true }
     ]
   },
   {
@@ -134,7 +179,7 @@ const initialCards = [
     },
     benefits: [
       { id: "csp-hotel", label: "Annual hotel credit", value: 50, enabled: true },
-      { id: "csp-dash", label: "DashPass value", value: 96, enabled: false }
+      { id: "csp-dash", label: "DashPass value", value: 96, enabled: true }
     ]
   },
   {
@@ -150,7 +195,7 @@ const initialCards = [
       travelOther: 2,
       gas: 2,
       streaming: 2,
-      misc: 1
+      misc: 2
     },
     benefits: [
       { id: "apple-daily", label: "Daily Cash (Apple Pay)", value: 0, enabled: true }
@@ -159,14 +204,14 @@ const initialCards = [
 ];
 
 const defaultSpend = {
-  dining: 4200,
-  groceries: 5200,
-  flights: 1900,
-  travelOther: 1900,
-  rent: 18000,
-  gas: 1400,
-  streaming: 600,
-  misc: 7200
+  dining: 10100,
+  groceries: 1200,
+  flights: 3500,
+  travelOther: 3500,
+  rent: 49500,
+  gas: 300,
+  streaming: 0,
+  misc: 14200
 };
 
 function formatCurrency(value) {
@@ -349,6 +394,119 @@ function getBiltRentRate(nonRentSpend, rentSpend) {
   return 0;
 }
 
+function getBiltRentRatesForScenario(cards, categories, spend, assignments) {
+  const totals = cards.reduce((acc, card) => {
+    acc[card.id] = { rent: 0, nonRent: 0 };
+    return acc;
+  }, {});
+
+  categories.forEach((category) => {
+    const splits = assignments?.[category.key] || [];
+    const amount = Number(spend?.[category.key] || 0);
+    splits.forEach((split) => {
+      const total = totals[split.cardId];
+      if (!total) {
+        return;
+      }
+      const portion = (amount * Number(split.share || 0)) / 100;
+      if (category.key === "rent") {
+        total.rent += portion;
+      } else {
+        total.nonRent += portion;
+      }
+    });
+  });
+
+  return cards.reduce((acc, card) => {
+    if (!isBiltCard(card)) {
+      return acc;
+    }
+    const totalsForCard = totals[card.id] || { rent: 0, nonRent: 0 };
+    acc[card.id] = getBiltRentRate(totalsForCard.nonRent, totalsForCard.rent);
+    return acc;
+  }, {});
+}
+
+function computeScenarioResults(scenario) {
+  if (!scenario) {
+    return { results: [], spendByCard: {}, biltRentRates: {} };
+  }
+
+  const { cards, categories, spend, assignments } = scenario;
+  const biltRentRates = getBiltRentRatesForScenario(
+    cards,
+    categories,
+    spend,
+    assignments
+  );
+
+  const spendByCard = categories.reduce((acc, category) => {
+    const amount = Number(spend?.[category.key] || 0);
+    const splits = assignments?.[category.key] || [];
+    splits.forEach((split) => {
+      const portion = (amount * Number(split.share || 0)) / 100;
+      acc[split.cardId] = (acc[split.cardId] || 0) + portion;
+    });
+    return acc;
+  }, {});
+
+  const cardTotals = cards.reduce((acc, card) => {
+    acc[card.id] = {
+      points: 0,
+      valueFromSpend: 0,
+      benefitValue: card.benefits.reduce(
+        (sum, benefit) =>
+          sum + (benefit.enabled ? Number(benefit.value || 0) : 0),
+        0
+      ),
+      annualFee: Number(card.annualFee || 0)
+    };
+    return acc;
+  }, {});
+
+  categories.forEach((category) => {
+    const annualSpend = Number(spend?.[category.key] || 0);
+    const splits = assignments?.[category.key] || [];
+
+    splits.forEach((split) => {
+      const card = cards.find((item) => item.id === split.cardId);
+      if (!card) {
+        return;
+      }
+      const portion = (annualSpend * Number(split.share || 0)) / 100;
+      const rate =
+        category.key === "rent" && isBiltCard(card)
+          ? biltRentRates[card.id] ?? 1
+          : Number(card.rates?.[category.key] || 0);
+      const points = portion * rate;
+      const valueFromSpend = points * Number(card.cpp || 0);
+
+      cardTotals[card.id].points += points;
+      cardTotals[card.id].valueFromSpend += valueFromSpend;
+    });
+  });
+
+  const results = cards.map((card) => {
+    const summary = cardTotals[card.id];
+    const grossValue = summary.valueFromSpend + summary.benefitValue;
+    const netValue = grossValue - summary.annualFee;
+
+    return {
+      id: card.id,
+      name: card.name,
+      cpp: card.cpp,
+      points: summary.points,
+      valueFromSpend: summary.valueFromSpend,
+      benefitValue: summary.benefitValue,
+      annualFee: summary.annualFee,
+      grossValue,
+      netValue
+    };
+  });
+
+  return { results, spendByCard, biltRentRates };
+}
+
 function createEmptyRates(categories) {
   return categories.reduce((acc, category) => {
     acc[category.key] = 1;
@@ -420,6 +578,11 @@ export default function App() {
     cpp: 0.015
   });
   const [bulkAssignmentCard, setBulkAssignmentCard] = useState("");
+  const [autoScenarioCards, setAutoScenarioCards] = useState([]);
+  const [showScenarioBuilder, setShowScenarioBuilder] = useState(false);
+  const [newScenarioName, setNewScenarioName] = useState("");
+  const [advancedMode, setAdvancedMode] = useState(false);
+  const [compactMode, setCompactMode] = useState(false);
 
   const [status, setStatus] = useState("idle");
   const [saveStatus, setSaveStatus] = useState("idle");
@@ -455,13 +618,9 @@ export default function App() {
   }
 
   function handleCreateScenario() {
-    const name = window.prompt("Scenario name");
-    if (!name) {
-      return;
-    }
-    const scenario = createScenario(name.trim());
-    setScenarios((prev) => [...prev, scenario]);
-    setActiveScenarioId(scenario.id);
+    setShowScenarioBuilder(true);
+    setNewScenarioName("");
+    setAutoScenarioCards([]);
   }
 
   function handleCloneScenario() {
@@ -494,6 +653,82 @@ export default function App() {
     }));
   }
 
+  function toggleAutoScenarioCard(cardId) {
+    setAutoScenarioCards((prev) => {
+      if (prev.includes(cardId)) {
+        return prev.filter((id) => id !== cardId);
+      }
+      if (prev.length >= 3) {
+        return prev;
+      }
+      return [...prev, cardId];
+    });
+  }
+
+  function handleScenarioNameChange(value) {
+    const nextName = value;
+    setNewScenarioName(nextName);
+    const lower = nextName.toLowerCase();
+    setAutoScenarioCards((prev) => {
+      const matched = cards
+        .filter((card) => lower.includes(card.name.toLowerCase()))
+        .map((card) => card.id);
+      const merged = [...prev, ...matched].filter(
+        (id, index, self) => self.indexOf(id) === index
+      );
+      return merged.slice(0, 3);
+    });
+  }
+
+  function handleBuildAutoScenario() {
+    if (!activeScenario) {
+      return;
+    }
+    if (autoScenarioCards.length === 0) {
+      return;
+    }
+
+    const selectedCards = autoScenarioCards
+      .map((id) => cards.find((card) => card.id === id))
+      .filter(Boolean);
+    if (selectedCards.length === 0) {
+      return;
+    }
+
+    const assignments = categories.reduce((acc, category) => {
+      let bestCard = selectedCards[0];
+      let bestRate = Number(bestCard?.rates?.[category.key] || 0);
+
+      selectedCards.slice(1).forEach((card) => {
+        const rate = Number(card?.rates?.[category.key] || 0);
+        if (rate > bestRate) {
+          bestRate = rate;
+          bestCard = card;
+        }
+      });
+
+      acc[category.key] = [{ cardId: bestCard.id, share: 100 }];
+      return acc;
+    }, {});
+
+    const scenario = normalizeScenario(
+      {
+        ...activeScenario,
+        id: `scenario-${Date.now()}`,
+        name: newScenarioName.trim() ||
+          `Auto: ${selectedCards.map((card) => card.name).join(" + ")}`,
+        assignments
+      },
+      "Auto scenario"
+    );
+
+    setScenarios((prev) => [...prev, scenario]);
+    setActiveScenarioId(scenario.id);
+    setShowScenarioBuilder(false);
+    setNewScenarioName("");
+    setAutoScenarioCards([]);
+  }
+
   function handleDeleteScenario() {
     if (!activeScenario || scenarios.length <= 1) {
       return;
@@ -509,6 +744,31 @@ export default function App() {
     );
     setScenarios(next);
     setActiveScenarioId(next[0]?.id || "");
+  }
+
+  function handleDeleteAllScenarios() {
+    if (!scenarios.length) {
+      return;
+    }
+    const confirmDelete = window.confirm(
+      "Delete all scenarios and reset to a single default?"
+    );
+    if (!confirmDelete) {
+      return;
+    }
+    const baseScenario = scenarios[0];
+    const scenario = normalizeScenario(
+      {
+        ...createScenario("Default scenario"),
+        categories: baseScenario?.categories || initialCategories,
+        cards: baseScenario?.cards || initialCards,
+        spend: baseScenario?.spend || defaultSpend,
+        assignments: baseScenario?.assignments
+      },
+      "Default scenario"
+    );
+    setScenarios([scenario]);
+    setActiveScenarioId(scenario.id);
   }
 
   useEffect(() => {
@@ -569,109 +829,13 @@ export default function App() {
     return () => clearTimeout(handle);
   }, [activeScenarioId, scenarios]);
 
-  const biltRentRates = useMemo(() => {
-    const totals = cards.reduce((acc, card) => {
-      acc[card.id] = { rent: 0, nonRent: 0 };
-      return acc;
-    }, {});
-
-    categories.forEach((category) => {
-      const splits = assignments[category.key] || [];
-      const amount = Number(spend[category.key] || 0);
-      splits.forEach((split) => {
-        const total = totals[split.cardId];
-        if (!total) {
-          return;
-        }
-        const portion = (amount * Number(split.share || 0)) / 100;
-        if (category.key === "rent") {
-          total.rent += portion;
-        } else {
-          total.nonRent += portion;
-        }
-      });
-    });
-
-    return cards.reduce((acc, card) => {
-      if (!isBiltCard(card)) {
-        return acc;
-      }
-      const totalsForCard = totals[card.id] || { rent: 0, nonRent: 0 };
-      acc[card.id] = getBiltRentRate(
-        totalsForCard.nonRent,
-        totalsForCard.rent
-      );
-      return acc;
-    }, {});
-  }, [assignments, cards, categories, spend]);
-
-  const results = useMemo(() => {
-    const cardTotals = cards.reduce((acc, card) => {
-      acc[card.id] = {
-        points: 0,
-        valueFromSpend: 0,
-        benefitValue: card.benefits.reduce(
-          (sum, benefit) =>
-            sum + (benefit.enabled ? Number(benefit.value || 0) : 0),
-          0
-        ),
-        annualFee: Number(card.annualFee || 0)
-      };
-      return acc;
-    }, {});
-
-    categories.forEach((category) => {
-      const annualSpend = Number(spend[category.key] || 0);
-      const splits = assignments[category.key] || [];
-
-      splits.forEach((split) => {
-        const card = cards.find((item) => item.id === split.cardId);
-        if (!card) {
-          return;
-        }
-        const portion = (annualSpend * Number(split.share || 0)) / 100;
-        const rate =
-          category.key === "rent" && isBiltCard(card)
-            ? biltRentRates[card.id] ?? 1
-            : Number(card.rates[category.key] || 0);
-        const points = portion * rate;
-        const valueFromSpend = points * Number(card.cpp || 0);
-
-        cardTotals[card.id].points += points;
-        cardTotals[card.id].valueFromSpend += valueFromSpend;
-      });
-    });
-
-    return cards.map((card) => {
-      const summary = cardTotals[card.id];
-      const grossValue = summary.valueFromSpend + summary.benefitValue;
-      const netValue = grossValue - summary.annualFee;
-
-      return {
-        id: card.id,
-        name: card.name,
-        cpp: card.cpp,
-        points: summary.points,
-        valueFromSpend: summary.valueFromSpend,
-        benefitValue: summary.benefitValue,
-        annualFee: summary.annualFee,
-        grossValue,
-        netValue
-      };
-    });
-  }, [assignments, biltRentRates, cards, categories, spend]);
-
-  const spendByCard = useMemo(() => {
-    return categories.reduce((acc, category) => {
-      const annualSpend = Number(spend[category.key] || 0);
-      const splits = assignments[category.key] || [];
-      splits.forEach((split) => {
-        const portion = (annualSpend * Number(split.share || 0)) / 100;
-        acc[split.cardId] = (acc[split.cardId] || 0) + portion;
-      });
-      return acc;
-    }, {});
-  }, [assignments, categories, spend]);
+  const scenarioCalc = useMemo(
+    () => computeScenarioResults(activeScenario),
+    [activeScenario]
+  );
+  const results = scenarioCalc.results;
+  const spendByCard = scenarioCalc.spendByCard;
+  const biltRentRates = scenarioCalc.biltRentRates;
 
   const pnlRows = [
     { key: "valueFromSpend", label: "Spend value", sign: "plus" },
@@ -693,6 +857,10 @@ export default function App() {
     );
     return acc;
   }, {});
+  const totalPoints = sortedResults.reduce(
+    (sum, card) => sum + Number(card.points || 0),
+    0
+  );
 
   function handleSpendChange(categoryKey, value) {
     updateScenario((scenario) => ({
@@ -885,8 +1053,72 @@ export default function App() {
     0
   );
 
+  const scenarioSummaries = useMemo(
+    () =>
+      scenarios
+        .map((scenario) => {
+          const calc = computeScenarioResults(scenario);
+          const activeCards = calc.results.filter(
+            (result) => (calc.spendByCard[result.id] || 0) > 0
+          );
+          const totalNet = activeCards.reduce(
+            (sum, result) => sum + result.netValue,
+            0
+          );
+          return {
+            id: scenario.id,
+            name: scenario.name,
+            totalNet,
+            netByCard: activeCards.map((result) => ({
+              id: result.id,
+              name: result.name,
+              netValue: result.netValue
+            }))
+          };
+        })
+        .sort((a, b) => b.totalNet - a.totalNet),
+    [scenarios]
+  );
+
+  const maxScenarioNet = useMemo(() => {
+    return scenarioSummaries.reduce(
+      (max, summary) => Math.max(max, summary.totalNet || 0),
+      0
+    );
+  }, [scenarioSummaries]);
+
+  const scenarioCards = useMemo(() => {
+    const map = new Map();
+    scenarioSummaries.forEach((summary) => {
+      summary.netByCard.forEach((entry) => {
+        if (!map.has(entry.id)) {
+          map.set(entry.id, entry.name);
+        }
+      });
+    });
+    return Array.from(map.entries()).map(([id, name], index) => ({
+      id,
+      name,
+      index
+    }));
+  }, [scenarioSummaries]);
+
+  function getCardColor(index) {
+    const palette = [
+      "#f15a50",
+      "#5fd3c4",
+      "#f4b158",
+      "#1f3a93",
+      "#e26d9b",
+      "#6fcf97",
+      "#d4a256",
+      "#3c5aa6"
+    ];
+    return palette[index % palette.length];
+  }
+
   return (
-    <div className="page">
+    <div className={compactMode ? "page page--compact" : "page"}>
       <header className="hero">
         <div>
           <p className="eyebrow">Card Value Studio</p>
@@ -906,50 +1138,42 @@ export default function App() {
           <h3>Current P&L by card</h3>
           <div className="pnl-scroll">
             <div
-              className="pnl-table"
-              style={{ "--pnl-cols": sortedResults.length + 1 }}
+              className="pnl-table pnl-table--cards"
+              style={{ "--pnl-cols": 6 }}
             >
               <div className="pnl-header">
-                <span className="pnl-label">Metric</span>
-                {sortedResults.map((card) => (
-                  <span key={card.id}>{card.name}</span>
-                ))}
-                <span className="pnl-total">Total</span>
+                <span className="pnl-label">Card</span>
+                <span className="pnl-net">Net value</span>
+                <span>Spend value</span>
+                <span>Benefits</span>
+                <span>Annual fees</span>
+                <span>Total points</span>
               </div>
-              {pnlRows.map((row) => (
-                <div className="pnl-row" key={row.key}>
-                  <span className="pnl-label">{row.label}</span>
-                  {sortedResults.map((card) => (
-                    <span
-                      key={`${card.id}-${row.key}`}
-                      className={
-                        row.sign === "plus"
-                          ? "pnl-plus"
-                          : row.sign === "minus"
-                          ? "pnl-minus"
-                          : "pnl-net"
-                      }
-                    >
-                      {row.sign === "plus" && "+"}{" "}
-                      {row.sign === "minus" && "-"}{" "}
-                      {formatCurrency(card[row.key])}
-                    </span>
-                  ))}
-                  <span
-                    className={
-                      row.sign === "plus"
-                        ? "pnl-plus pnl-total"
-                        : row.sign === "minus"
-                        ? "pnl-minus pnl-total"
-                        : "pnl-net pnl-total"
-                    }
-                  >
-                    {row.sign === "plus" && "+"} {row.sign === "minus" && "-"}{" "}
-                  {formatCurrency(totalsByRow[row.key])}
+              {sortedResults.map((card) => (
+                <div className="pnl-row" key={card.id}>
+                  <span className="pnl-label">{card.name}</span>
+                  <span className="pnl-net">{formatCurrency(card.netValue)}</span>
+                  <span className="pnl-plus">{formatCurrency(card.valueFromSpend)}</span>
+                  <span className="pnl-plus">{formatCurrency(card.benefitValue)}</span>
+                  <span className="pnl-minus">{formatCurrency(card.annualFee)}</span>
+                  <span>{Math.round(card.points).toLocaleString()}</span>
+                </div>
+              ))}
+              <div className="pnl-row pnl-total-row">
+                <span className="pnl-label">Total</span>
+                <span className="pnl-net">{formatCurrency(totalsByRow.netValue)}</span>
+                <span className="pnl-plus">
+                  {formatCurrency(totalsByRow.valueFromSpend)}
                 </span>
+                <span className="pnl-plus">
+                  {formatCurrency(totalsByRow.benefitValue)}
+                </span>
+                <span className="pnl-minus">
+                  {formatCurrency(totalsByRow.annualFee)}
+                </span>
+                <span>{Math.round(totalPoints).toLocaleString()}</span>
               </div>
-            ))}
-          </div>
+            </div>
           </div>
           <div className="hero-grid">
             <div>
@@ -962,6 +1186,16 @@ export default function App() {
                 {formatCurrency(totalsByRow.netValue)}
               </strong>
             </div>
+          </div>
+          <div className="mode-toggle">
+            <label>
+              <input
+                type="checkbox"
+                checked={compactMode}
+                onChange={(event) => setCompactMode(event.target.checked)}
+              />
+              <span>Compact layout</span>
+            </label>
           </div>
           <p className="save-status">
             {saveStatus === "saving" && "Saving changes..."}
@@ -990,6 +1224,9 @@ export default function App() {
               <button type="button" className="ghost" onClick={handleRenameScenario}>
                 Rename
               </button>
+              <button type="button" className="ghost" onClick={handleDeleteAllScenarios}>
+                Delete all
+              </button>
               <button
                 type="button"
                 className="ghost"
@@ -1015,6 +1252,176 @@ export default function App() {
               </select>
             </label>
           </div>
+          {showScenarioBuilder && (
+            <div className="scenario-builder">
+              <div>
+                <h3>New scenario builder</h3>
+                <p className="panel-meta">
+                  Name the scenario and pick 1-3 cards. Each category will be
+                  routed to the highest points rate among your selections.
+                </p>
+              </div>
+              <label className="scenario-name">
+                <span>Scenario name</span>
+                <input
+                  type="text"
+                  value={newScenarioName}
+                  onChange={(event) => handleScenarioNameChange(event.target.value)}
+                  placeholder="e.g., Amex + Venture X"
+                />
+              </label>
+              <div className="scenario-card-picker">
+                {cards.map((card) => {
+                  const selected = autoScenarioCards.includes(card.id);
+                  return (
+                    <button
+                      type="button"
+                      key={card.id}
+                      className={
+                        selected ? "picker-card picker-card--active" : "picker-card"
+                      }
+                      onClick={() => toggleAutoScenarioCard(card.id)}
+                    >
+                      <span>{card.name}</span>
+                      <span className="picker-meta">{card.cpp.toFixed(3)} CPP</span>
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="scenario-builder-actions">
+                <span className="picker-meta">
+                  Selected {autoScenarioCards.length} / 3
+                </span>
+                <div className="scenario-actions">
+                  <button
+                    type="button"
+                    className="ghost"
+                    onClick={() => setShowScenarioBuilder(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="ghost"
+                    onClick={handleBuildAutoScenario}
+                    disabled={!autoScenarioCards.length || !newScenarioName.trim()}
+                  >
+                    Create scenario
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+          {!showScenarioBuilder && (
+            <div className="scenario-builder">
+            <div>
+              <h3>Auto-route by best rate</h3>
+              <p className="panel-meta">
+                Pick 1-3 cards. Each category will be assigned to the highest
+                points rate among your selections.
+              </p>
+            </div>
+            <div className="scenario-card-picker">
+              {cards.map((card) => {
+                const selected = autoScenarioCards.includes(card.id);
+                return (
+                  <button
+                    type="button"
+                    key={card.id}
+                    className={selected ? "picker-card picker-card--active" : "picker-card"}
+                    onClick={() => toggleAutoScenarioCard(card.id)}
+                  >
+                    <span>{card.name}</span>
+                    <span className="picker-meta">{card.cpp.toFixed(3)} CPP</span>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="scenario-builder-actions">
+              <span className="picker-meta">
+                Selected {autoScenarioCards.length} / 3
+              </span>
+              <button type="button" className="ghost" onClick={handleBuildAutoScenario}>
+                Build scenario
+              </button>
+            </div>
+            </div>
+          )}
+        </section>
+        <section className="panel">
+          <h2>Scenario comparison</h2>
+          <p className="panel-meta">
+            Compare total net value by card across scenarios.
+          </p>
+          <div className="scenario-chart">
+            <div className="scenario-legend">
+              {scenarioCards.map((card) => (
+                <div className="legend-item" key={card.id}>
+                  <span
+                    className="legend-swatch"
+                    style={{ backgroundColor: getCardColor(card.index) }}
+                  />
+                  <span>{card.name}</span>
+                </div>
+              ))}
+            </div>
+            <div className="scenario-list">
+              {scenarioSummaries.map((summary) => {
+                const totalPoints = summary.totalPoints || 0;
+                return (
+                  <div className="scenario-row-chart" key={summary.id}>
+                    <div className="scenario-row-header">
+                      <div>
+                        <h3>{summary.name}</h3>
+                        <p className="panel-meta">
+                          Total net value: {formatCurrency(summary.totalNet)}
+                        </p>
+                      </div>
+                    <div className="scenario-total-points">
+                      <span>Total net value</span>
+                      <strong>{formatCurrency(summary.totalNet)}</strong>
+                    </div>
+                  </div>
+                  <div className="scenario-bar-scale">
+                      {summary.totalNet === 0 && (
+                        <span className="scenario-muted">No spend routed</span>
+                      )}
+                      <div
+                        className="scenario-bar"
+                        style={{
+                          width: maxScenarioNet
+                            ? `${(summary.totalNet / maxScenarioNet) * 100}%`
+                            : "0%"
+                        }}
+                      >
+                        {summary.totalNet > 0 &&
+                          summary.netByCard.map((entry) => {
+                            const cardIndex = scenarioCards.findIndex(
+                              (card) => card.id === entry.id
+                            );
+                            const width =
+                              (entry.netValue / summary.totalNet) * 100;
+                            return (
+                              <span
+                                key={`${summary.id}-${entry.id}`}
+                                className="scenario-segment"
+                                style={{
+                                  width: `${width}%`,
+                                  backgroundColor: getCardColor(cardIndex)
+                                }}
+                                title={`${entry.name}: ${formatCurrency(
+                                  entry.netValue
+                                )}`}
+                              />
+                            );
+                          })}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </section>
         <section className="panel">
           <h2>Spending and assignments</h2>
@@ -1022,6 +1429,16 @@ export default function App() {
             Enter your annual spend per category and select the card you want to
             use.
           </p>
+          <div className="advanced-toggle">
+            <label>
+              <input
+                type="checkbox"
+                checked={advancedMode}
+                onChange={(event) => setAdvancedMode(event.target.checked)}
+              />
+              <span>Advanced mode (multi-card splits)</span>
+            </label>
+          </div>
           <div className="bulk-assign">
             <label>
               <span>Assign all categories to</span>
@@ -1058,70 +1475,95 @@ export default function App() {
                     handleSpendChange(category.key, event.target.value)
                   }
                 />
-                <div className="split-list">
-                  {(assignments[category.key] || []).map((split, index) => (
-                    <div className="split-row" key={`${category.key}-${index}`}>
-                      <select
-                        value={split.cardId}
-                        onChange={(event) =>
-                          handleSplitChange(
-                            category.key,
-                            index,
-                            "cardId",
-                            event.target.value
-                          )
-                        }
-                      >
-                        {cards.map((card) => (
-                          <option value={card.id} key={card.id}>
-                            {card.name}
-                          </option>
-                        ))}
-                      </select>
-                      <input
-                        type="number"
-                        min="0"
-                        max="100"
-                        value={split.share}
-                        onChange={(event) =>
-                          handleSplitChange(
-                            category.key,
-                            index,
-                            "share",
-                            event.target.value
-                          )
-                        }
-                      />
-                      <span className="split-suffix">%</span>
+                {advancedMode ? (
+                  <div className="split-list">
+                    {(assignments[category.key] || []).map((split, index) => (
+                      <div className="split-row" key={`${category.key}-${index}`}>
+                        <select
+                          value={split.cardId}
+                          onChange={(event) =>
+                            handleSplitChange(
+                              category.key,
+                              index,
+                              "cardId",
+                              event.target.value
+                            )
+                          }
+                        >
+                          {cards.map((card) => (
+                            <option value={card.id} key={card.id}>
+                              {card.name}
+                            </option>
+                          ))}
+                        </select>
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={split.share}
+                          onChange={(event) =>
+                            handleSplitChange(
+                              category.key,
+                              index,
+                              "share",
+                              event.target.value
+                            )
+                          }
+                        />
+                        <span className="split-suffix">%</span>
+                        <button
+                          type="button"
+                          className="ghost"
+                          onClick={() => handleRemoveSplit(category.key, index)}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                    <div className="split-actions">
                       <button
                         type="button"
                         className="ghost"
-                        onClick={() => handleRemoveSplit(category.key, index)}
+                        onClick={() => handleAddSplit(category.key)}
                       >
-                        Remove
+                        Add split
                       </button>
+                      <span className="split-total">
+                        Total:{" "}
+                        {(assignments[category.key] || []).reduce(
+                          (sum, split) => sum + Number(split.share || 0),
+                          0
+                        )}
+                        %
+                      </span>
                     </div>
-                  ))}
-                  <div className="split-actions">
-                    <button
-                      type="button"
-                      className="ghost"
-                      onClick={() => handleAddSplit(category.key)}
-                    >
-                      Add split
-                    </button>
-                    <span className="split-total">
-                      Total:{" "}
-                      {(assignments[category.key] || []).reduce(
-                        (sum, split) => sum + Number(split.share || 0),
-                        0
-                      )}
-                      %
-                    </span>
                   </div>
-                </div>
+                ) : (
+                  <select
+                    value={assignments[category.key]?.[0]?.cardId || ""}
+                    onChange={(event) =>
+                      handleSplitChange(
+                        category.key,
+                        0,
+                        "cardId",
+                        event.target.value
+                      )
+                    }
+                  >
+                    {cards.map((card) => (
+                      <option value={card.id} key={card.id}>
+                        {card.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
             ))}
+            <div className="table-row table-total">
+              <span>Total</span>
+              <strong>{formatCurrency(annualSpendTotal)}</strong>
+              <span />
+            </div>
           </div>
         </section>
 
@@ -1237,6 +1679,7 @@ export default function App() {
                           )
                         }
                       />
+                      <span className="rate-suffix">x</span>
                     </label>
                   ))}
                 </div>

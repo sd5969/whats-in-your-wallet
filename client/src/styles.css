@@ -105,6 +105,7 @@ body {
 .pnl-scroll {
   overflow-x: auto;
   padding-bottom: 6px;
+  max-width: 100%;
 }
 
 .pnl-table {
@@ -113,6 +114,11 @@ body {
   margin-bottom: 16px;
   min-width: 640px;
   width: max-content;
+  max-width: 100%;
+}
+
+.pnl-table--cards {
+  min-width: 720px;
 }
 
 .pnl-header,
@@ -160,6 +166,10 @@ body {
 
 .pnl-total {
   text-align: right;
+}
+
+.pnl-total-row {
+  background: rgba(255, 255, 255, 0.9);
 }
 
 .save-status {
@@ -237,6 +247,155 @@ body {
   font-family: inherit;
 }
 
+.scenario-builder {
+  margin-top: 20px;
+  display: grid;
+  gap: 16px;
+}
+
+.scenario-builder h3 {
+  margin: 0 0 6px;
+  font-size: 1.1rem;
+}
+
+.scenario-name {
+  display: grid;
+  gap: 8px;
+}
+
+.scenario-name input {
+  border-radius: 12px;
+  border: 1px solid var(--stroke);
+  padding: 10px 12px;
+  font-size: 0.95rem;
+  font-family: inherit;
+}
+
+.scenario-card-picker {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.picker-card {
+  border: 1px solid var(--stroke);
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 14px;
+  padding: 12px;
+  display: grid;
+  gap: 6px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.picker-card--active {
+  border-color: rgba(241, 90, 80, 0.5);
+  box-shadow: 0 16px 26px rgba(241, 90, 80, 0.18);
+  background: #fff;
+}
+
+.picker-meta {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.scenario-builder-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.scenario-chart {
+  display: grid;
+  gap: 16px;
+}
+
+.scenario-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+}
+
+.legend-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.scenario-list {
+  display: grid;
+  gap: 16px;
+}
+
+.scenario-row-chart {
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 16px;
+  padding: 16px;
+  border: 1px solid var(--stroke);
+}
+
+.scenario-row-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.scenario-row-header h3 {
+  margin: 0 0 4px;
+  font-size: 1.05rem;
+}
+
+.scenario-total-points {
+  text-align: right;
+}
+
+.scenario-total-points span {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.scenario-bar {
+  margin-top: 12px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 999px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--stroke);
+  position: relative;
+}
+
+.scenario-bar-scale {
+  width: 100%;
+}
+
+.scenario-segment {
+  height: 100%;
+  display: block;
+}
+
+.scenario-muted {
+  color: var(--muted);
+  font-size: 0.85rem;
+  padding-left: 8px;
+}
+
 .table {
   display: grid;
   gap: 12px;
@@ -259,6 +418,11 @@ body {
   padding: 0 4px 6px;
   font-size: 0.85rem;
   color: var(--muted);
+}
+
+.table-total {
+  background: rgba(255, 255, 255, 0.85);
+  font-weight: 600;
 }
 
 .table-row input,
@@ -291,6 +455,20 @@ body {
   padding: 10px 12px;
   font-size: 0.95rem;
   font-family: inherit;
+}
+
+.advanced-toggle {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+
+.advanced-toggle label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.9rem;
 }
 
 .split-list {
@@ -456,7 +634,7 @@ body {
 
 .rate {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr auto auto;
   align-items: center;
   gap: 8px;
   background: #fff;
@@ -471,6 +649,49 @@ body {
   border-radius: 10px;
   padding: 6px 8px;
   font-family: inherit;
+}
+
+.rate-suffix {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.mode-toggle {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.mode-toggle label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.page--compact .layout {
+  gap: 16px;
+}
+
+.page--compact .panel {
+  padding: 18px;
+}
+
+.page--compact .table-row {
+  padding: 8px 12px;
+}
+
+.page--compact .scenario-row-chart {
+  padding: 12px;
+}
+
+.page--compact .cards-list {
+  gap: 12px;
+}
+
+.page--compact .card-detail {
+  padding: 14px;
 }
 
 
