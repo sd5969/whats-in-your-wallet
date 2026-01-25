@@ -57,7 +57,7 @@ const initialCards = [
     rates: {
       rent: 0,
       dining: 3,
-      groceries: 3,
+      groceries: 1,
       flights: 2,
       travelOther: 2,
       gas: 1,
@@ -127,11 +127,11 @@ const initialCards = [
     annualFee: 325,
     cpp: 0.018,
     rates: {
-      rent: 1,
+      rent: 0,
       dining: 4,
       groceries: 4,
       flights: 3,
-      travelOther: 3,
+      travelOther: 1,
       gas: 1,
       streaming: 1,
       misc: 1
@@ -147,11 +147,11 @@ const initialCards = [
     annualFee: 395,
     cpp: 0.015,
     rates: {
-      rent: 1,
+      rent: 0,
       dining: 2,
       groceries: 2,
       flights: 5,
-      travelOther: 5,
+      travelOther: 2,
       gas: 2,
       streaming: 2,
       misc: 2
@@ -168,9 +168,9 @@ const initialCards = [
     annualFee: 95,
     cpp: 0.015,
     rates: {
-      rent: 1,
+      rent: 0,
       dining: 3,
-      groceries: 3,
+      groceries: 1,
       flights: 2,
       travelOther: 2,
       gas: 1,
@@ -188,7 +188,7 @@ const initialCards = [
     annualFee: 0,
     cpp: 0.01,
     rates: {
-      rent: 1,
+      rent: 0,
       dining: 2,
       groceries: 2,
       flights: 2,
@@ -242,6 +242,17 @@ function parseSpendInput(value) {
     return "";
   }
   return clampNumber(value);
+}
+
+function parseNumberString(value) {
+  return value.replace(/,/g, "");
+}
+
+function formatNumberInput(value) {
+  if (value === "") {
+    return "";
+  }
+  return Number(value || 0).toLocaleString("en-US");
 }
 
 function normalizeSpend(spend) {
@@ -568,6 +579,31 @@ function createScenario(name) {
   );
 }
 
+function buildAssignmentsForCards(categories, selectedCards) {
+  return categories.reduce((acc, category) => {
+    let bestCard = selectedCards[0];
+    let bestRate = Number(bestCard?.rates?.[category.key] || 0);
+
+    selectedCards.slice(1).forEach((card) => {
+      const rate = Number(card?.rates?.[category.key] || 0);
+      if (rate > bestRate) {
+        bestRate = rate;
+        bestCard = card;
+      }
+    });
+
+    acc[category.key] = [{ cardId: bestCard.id, share: 100 }];
+    return acc;
+  }, {});
+}
+
+function buildDefaultCards() {
+  return initialCards.map((card) => ({
+    ...card,
+    rates: { ...card.rates }
+  }));
+}
+
 export default function App() {
   const [scenarios, setScenarios] = useState([]);
   const [activeScenarioId, setActiveScenarioId] = useState("");
@@ -695,21 +731,7 @@ export default function App() {
       return;
     }
 
-    const assignments = categories.reduce((acc, category) => {
-      let bestCard = selectedCards[0];
-      let bestRate = Number(bestCard?.rates?.[category.key] || 0);
-
-      selectedCards.slice(1).forEach((card) => {
-        const rate = Number(card?.rates?.[category.key] || 0);
-        if (rate > bestRate) {
-          bestRate = rate;
-          bestCard = card;
-        }
-      });
-
-      acc[category.key] = [{ cardId: bestCard.id, share: 100 }];
-      return acc;
-    }, {});
+    const assignments = buildAssignmentsForCards(categories, selectedCards);
 
     const scenario = normalizeScenario(
       {
@@ -727,6 +749,81 @@ export default function App() {
     setShowScenarioBuilder(false);
     setNewScenarioName("");
     setAutoScenarioCards([]);
+  }
+
+  function handleGenerateAllCombos() {
+    if (!activeScenario) {
+      return;
+    }
+    const allCards = cards;
+    if (allCards.length === 0) {
+      return;
+    }
+
+    const combos = [];
+    for (let i = 0; i < allCards.length; i += 1) {
+      combos.push([allCards[i]]);
+      for (let j = i + 1; j < allCards.length; j += 1) {
+        combos.push([allCards[i], allCards[j]]);
+        for (let k = j + 1; k < allCards.length; k += 1) {
+          combos.push([allCards[i], allCards[j], allCards[k]]);
+        }
+      }
+    }
+
+    const confirmGenerate = window.confirm(
+      `Generate ${combos.length} scenarios for all 1-3 card combinations?`
+    );
+    if (!confirmGenerate) {
+      return;
+    }
+
+    const existingNames = new Set(scenarios.map((scenario) => scenario.name));
+    const newScenarios = combos
+      .map((combo) => {
+        const assignments = buildAssignmentsForCards(categories, combo);
+        const name = `Auto: ${combo.map((card) => card.name).join(" + ")}`;
+        if (existingNames.has(name)) {
+          return null;
+        }
+        return normalizeScenario(
+          {
+            ...activeScenario,
+            id: `scenario-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+            name,
+            assignments
+          },
+          name
+        );
+      })
+      .filter(Boolean);
+
+    if (newScenarios.length === 0) {
+      return;
+    }
+    setScenarios((prev) => [...prev, ...newScenarios]);
+  }
+
+  function handleResetCardRates() {
+    if (!activeScenario) {
+      return;
+    }
+    const confirmReset = window.confirm(
+      "Reset all card earning rates to defaults for this scenario?"
+    );
+    if (!confirmReset) {
+      return;
+    }
+    const defaultsById = new Map(
+      buildDefaultCards().map((card) => [card.id, card.rates])
+    );
+    updateScenario((scenario) => ({
+      ...scenario,
+      cards: scenario.cards.map((card) => ({
+        ...card,
+        rates: defaultsById.get(card.id) || card.rates
+      }))
+    }));
   }
 
   function handleDeleteScenario() {
@@ -860,6 +957,54 @@ export default function App() {
   const totalPoints = sortedResults.reduce(
     (sum, card) => sum + Number(card.points || 0),
     0
+  );
+
+  const spendSummary = useMemo(() => {
+    const byCardCategory = cards.reduce((acc, card) => {
+      acc[card.id] = categories.reduce((catAcc, category) => {
+        catAcc[category.key] = 0;
+        return catAcc;
+      }, {});
+      return acc;
+    }, {});
+    const totals = cards.reduce((acc, card) => {
+      acc[card.id] = 0;
+      return acc;
+    }, {});
+
+    categories.forEach((category) => {
+      const amount = Number(spend[category.key] || 0);
+      const splits = assignments[category.key] || [];
+      splits.forEach((split) => {
+        const portion = (amount * Number(split.share || 0)) / 100;
+        if (!byCardCategory[split.cardId]) {
+          return;
+        }
+        byCardCategory[split.cardId][category.key] += portion;
+        totals[split.cardId] += portion;
+      });
+    });
+
+    const max = Object.values(totals).reduce(
+      (maxValue, value) => Math.max(maxValue, value),
+      0
+    );
+
+    return { byCardCategory, totals, max };
+  }, [assignments, cards, categories, spend]);
+
+  const categoryColors = useMemo(
+    () => ({
+      dining: "#70201d",
+      groceries: "#962d27",
+      flights: "#d06965",
+      travelOther: "#de9997",
+      rent: "#edcccb",
+      gas: "#3f3f3f",
+      streaming: "#6f6f6f",
+      misc: "#a6a6a6"
+    }),
+    []
   );
 
   function handleSpendChange(categoryKey, value) {
@@ -1105,14 +1250,14 @@ export default function App() {
 
   function getCardColor(index) {
     const palette = [
-      "#f15a50",
-      "#5fd3c4",
-      "#f4b158",
-      "#1f3a93",
-      "#e26d9b",
-      "#6fcf97",
-      "#d4a256",
-      "#3c5aa6"
+      "#70201d",
+      "#962d27",
+      "#d06965",
+      "#de9997",
+      "#3f3f3f",
+      "#6f6f6f",
+      "#a6a6a6",
+      "#c7c7c7"
     ];
     return palette[index % palette.length];
   }
@@ -1341,9 +1486,22 @@ export default function App() {
               <span className="picker-meta">
                 Selected {autoScenarioCards.length} / 3
               </span>
-              <button type="button" className="ghost" onClick={handleBuildAutoScenario}>
-                Build scenario
-              </button>
+              <div className="scenario-actions">
+                <button
+                  type="button"
+                  className="ghost"
+                  onClick={handleBuildAutoScenario}
+                >
+                  Build scenario
+                </button>
+                <button
+                  type="button"
+                  className="ghost"
+                  onClick={handleGenerateAllCombos}
+                >
+                  Build all combos
+                </button>
+              </div>
             </div>
             </div>
           )}
@@ -1367,55 +1525,55 @@ export default function App() {
             </div>
             <div className="scenario-list">
               {scenarioSummaries.map((summary) => {
-                const totalPoints = summary.totalPoints || 0;
                 return (
-                  <div className="scenario-row-chart" key={summary.id}>
-                    <div className="scenario-row-header">
-                      <div>
-                        <h3>{summary.name}</h3>
-                        <p className="panel-meta">
-                          Total net value: {formatCurrency(summary.totalNet)}
-                        </p>
-                      </div>
-                    <div className="scenario-total-points">
-                      <span>Total net value</span>
-                      <strong>{formatCurrency(summary.totalNet)}</strong>
+                  <div className="scenario-bar-row" key={summary.id}>
+                    <div className="scenario-bar-label">
+                      <span>{summary.name}</span>
                     </div>
-                  </div>
-                  <div className="scenario-bar-scale">
-                      {summary.totalNet === 0 && (
-                        <span className="scenario-muted">No spend routed</span>
-                      )}
-                      <div
-                        className="scenario-bar"
-                        style={{
-                          width: maxScenarioNet
-                            ? `${(summary.totalNet / maxScenarioNet) * 100}%`
-                            : "0%"
-                        }}
-                      >
-                        {summary.totalNet > 0 &&
-                          summary.netByCard.map((entry) => {
-                            const cardIndex = scenarioCards.findIndex(
-                              (card) => card.id === entry.id
-                            );
-                            const width =
-                              (entry.netValue / summary.totalNet) * 100;
-                            return (
-                              <span
-                                key={`${summary.id}-${entry.id}`}
-                                className="scenario-segment"
-                                style={{
-                                  width: `${width}%`,
-                                  backgroundColor: getCardColor(cardIndex)
-                                }}
-                                title={`${entry.name}: ${formatCurrency(
-                                  entry.netValue
-                                )}`}
-                              />
-                            );
-                          })}
+                    <div className="scenario-axis" />
+                    <div className="scenario-bar-area">
+                      <div className="scenario-bar-scale">
+                        {summary.totalNet === 0 && (
+                          <span className="scenario-muted">No spend routed</span>
+                        )}
+                        <div
+                          className="scenario-bar"
+                          style={{
+                            width: maxScenarioNet
+                              ? `${(summary.totalNet / maxScenarioNet) * 100}%`
+                              : "0%"
+                          }}
+                        >
+                          {summary.totalNet > 0 &&
+                            summary.netByCard.map((entry) => {
+                              const cardIndex = scenarioCards.findIndex(
+                                (card) => card.id === entry.id
+                              );
+                              const width =
+                                (entry.netValue / summary.totalNet) * 100;
+                              return (
+                                <span
+                                  key={`${summary.id}-${entry.id}`}
+                                  className="scenario-segment"
+                                  style={{
+                                    width: `${width}%`,
+                                    backgroundColor: getCardColor(cardIndex)
+                                  }}
+                                  title={`${entry.name}: ${formatCurrency(
+                                    entry.netValue
+                                  )}`}
+                                >
+                                  <span className="segment-label">
+                                    {formatCurrency(entry.netValue)}
+                                  </span>
+                                </span>
+                              );
+                            })}
+                        </div>
                       </div>
+                    </div>
+                    <div className="scenario-bar-value">
+                      {formatCurrency(summary.totalNet)}
                     </div>
                   </div>
                 );
@@ -1423,6 +1581,100 @@ export default function App() {
             </div>
           </div>
         </section>
+        <section className="panel">
+          <div className="panel-header">
+            <h2>Card summaries</h2>
+            <p className="panel-meta">Net value = spend value + benefits - fee</p>
+          </div>
+          <div className="category-legend">
+            {categories.map((category) => (
+              <div className="legend-item" key={category.key}>
+                <span
+                  className="legend-swatch"
+                  style={{ backgroundColor: categoryColors[category.key] || "#ccc" }}
+                />
+                <span>{category.label}</span>
+              </div>
+            ))}
+          </div>
+          <div className="card-grid">
+            {sortedResults.map((result, index) => (
+              <article
+                className={index === 0 ? "card-summary card-best" : "card-summary"}
+                key={result.id}
+              >
+                <div className="card-summary-header">
+                  <h3>{result.name}</h3>
+                  <span>{formatCurrency(result.netValue)}</span>
+                </div>
+                <div className="card-spend-bar">
+                  <div className="card-spend-bar__meta">
+                    <span>Spend routed</span>
+                    <strong>{formatCurrency(spendSummary.totals[result.id])}</strong>
+                  </div>
+                  <div className="card-spend-bar__scale">
+                    <div
+                      className="card-spend-bar__stack"
+                      style={{
+                        width: spendSummary.max
+                          ? `${(spendSummary.totals[result.id] / spendSummary.max) * 100}%`
+                          : "0%"
+                      }}
+                      title={`Spend: ${formatCurrency(spendSummary.totals[result.id])}`}
+                    >
+                      {(() => {
+                        const total = spendSummary.totals[result.id] || 0;
+                        if (total <= 0) {
+                          return null;
+                        }
+                        const sortedCategories = categories
+                          .map((category) => ({
+                            key: category.key,
+                            label: category.label,
+                            amount:
+                              spendSummary.byCardCategory[result.id]?.[category.key] || 0
+                          }))
+                          .filter((entry) => entry.amount > 0)
+                          .sort((a, b) => b.amount - a.amount);
+
+                        return sortedCategories.map((entry) => (
+                          <span
+                            key={`${result.id}-${entry.key}`}
+                            className="card-spend-bar__segment"
+                            style={{
+                              width: `${(entry.amount / total) * 100}%`,
+                              backgroundColor: categoryColors[entry.key] || "#ccc"
+                            }}
+                            title={`${entry.label}: ${formatCurrency(entry.amount)}`}
+                          />
+                        ));
+                      })()}
+                    </div>
+                  </div>
+                </div>
+                <div className="card-summary-body">
+                  <div>
+                    <span>Spend value</span>
+                    <strong>{formatCurrency(result.valueFromSpend)}</strong>
+                  </div>
+                  <div>
+                    <span>Benefits</span>
+                    <strong>{formatCurrency(result.benefitValue)}</strong>
+                  </div>
+                  <div>
+                    <span>Annual fee</span>
+                    <strong>{formatCurrency(result.annualFee)}</strong>
+                  </div>
+                  <div>
+                    <span>Total points</span>
+                    <strong>{result.points.toFixed(0)}</strong>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
         <section className="panel">
           <h2>Spending and assignments</h2>
           <p className="panel-meta">
@@ -1458,151 +1710,126 @@ export default function App() {
               Apply to all
             </button>
           </div>
-          <div className="table">
-            <div className="table-row table-head">
-              <span>Category</span>
-              <span>Annual spend</span>
-              <span>Assignments</span>
-            </div>
-            {categories.map((category) => (
-              <div className="table-row" key={category.key}>
-                <span>{category.label}</span>
-                <input
-                  type="number"
-                  min="0"
-                  value={spend[category.key]}
-                  onChange={(event) =>
-                    handleSpendChange(category.key, event.target.value)
-                  }
-                />
-                {advancedMode ? (
-                  <div className="split-list">
-                    {(assignments[category.key] || []).map((split, index) => (
-                      <div className="split-row" key={`${category.key}-${index}`}>
-                        <select
-                          value={split.cardId}
-                          onChange={(event) =>
-                            handleSplitChange(
-                              category.key,
-                              index,
-                              "cardId",
-                              event.target.value
-                            )
-                          }
-                        >
-                          {cards.map((card) => (
-                            <option value={card.id} key={card.id}>
-                              {card.name}
-                            </option>
-                          ))}
-                        </select>
-                        <input
-                          type="number"
-                          min="0"
-                          max="100"
-                          value={split.share}
-                          onChange={(event) =>
-                            handleSplitChange(
-                              category.key,
-                              index,
-                              "share",
-                              event.target.value
-                            )
-                          }
-                        />
-                        <span className="split-suffix">%</span>
-                        <button
-                          type="button"
-                          className="ghost"
-                          onClick={() => handleRemoveSplit(category.key, index)}
-                        >
-                          Remove
-                        </button>
+          <table className="assignment-table">
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th>Annual spend</th>
+                <th>Assignments</th>
+              </tr>
+            </thead>
+            <tbody>
+              {categories.map((category) => (
+                <tr key={category.key}>
+                  <td>{category.label}</td>
+                  <td>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={formatNumberInput(spend[category.key])}
+                      onChange={(event) =>
+                        handleSpendChange(
+                          category.key,
+                          parseNumberString(event.target.value)
+                        )
+                      }
+                    />
+                  </td>
+                  <td>
+                    {advancedMode ? (
+                      <div className="split-list">
+                        {(assignments[category.key] || []).map((split, index) => (
+                          <div className="split-row" key={`${category.key}-${index}`}>
+                            <select
+                              value={split.cardId}
+                              onChange={(event) =>
+                                handleSplitChange(
+                                  category.key,
+                                  index,
+                                  "cardId",
+                                  event.target.value
+                                )
+                              }
+                            >
+                              {cards.map((card) => (
+                                <option value={card.id} key={card.id}>
+                                  {card.name}
+                                </option>
+                              ))}
+                            </select>
+                            <input
+                              type="number"
+                              min="0"
+                              max="100"
+                              value={split.share}
+                              onChange={(event) =>
+                                handleSplitChange(
+                                  category.key,
+                                  index,
+                                  "share",
+                                  event.target.value
+                                )
+                              }
+                            />
+                            <span className="split-suffix">%</span>
+                            <button
+                              type="button"
+                              className="ghost"
+                              onClick={() => handleRemoveSplit(category.key, index)}
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        ))}
+                        <div className="split-actions">
+                          <button
+                            type="button"
+                            className="ghost"
+                            onClick={() => handleAddSplit(category.key)}
+                          >
+                            Add split
+                          </button>
+                          <span className="split-total">
+                            Total:{" "}
+                            {(assignments[category.key] || []).reduce(
+                              (sum, split) => sum + Number(split.share || 0),
+                              0
+                            )}
+                            %
+                          </span>
+                        </div>
                       </div>
-                    ))}
-                    <div className="split-actions">
-                      <button
-                        type="button"
-                        className="ghost"
-                        onClick={() => handleAddSplit(category.key)}
+                    ) : (
+                      <select
+                        value={assignments[category.key]?.[0]?.cardId || ""}
+                        onChange={(event) =>
+                          handleSplitChange(
+                            category.key,
+                            0,
+                            "cardId",
+                            event.target.value
+                          )
+                        }
                       >
-                        Add split
-                      </button>
-                      <span className="split-total">
-                        Total:{" "}
-                        {(assignments[category.key] || []).reduce(
-                          (sum, split) => sum + Number(split.share || 0),
-                          0
-                        )}
-                        %
-                      </span>
-                    </div>
-                  </div>
-                ) : (
-                  <select
-                    value={assignments[category.key]?.[0]?.cardId || ""}
-                    onChange={(event) =>
-                      handleSplitChange(
-                        category.key,
-                        0,
-                        "cardId",
-                        event.target.value
-                      )
-                    }
-                  >
-                    {cards.map((card) => (
-                      <option value={card.id} key={card.id}>
-                        {card.name}
-                      </option>
-                    ))}
-                  </select>
-                )}
-              </div>
-            ))}
-            <div className="table-row table-total">
-              <span>Total</span>
-              <strong>{formatCurrency(annualSpendTotal)}</strong>
-              <span />
-            </div>
-          </div>
-        </section>
-
-        <section className="panel">
-          <div className="panel-header">
-            <h2>Card summaries</h2>
-            <p className="panel-meta">Net value = spend value + benefits - fee</p>
-          </div>
-          <div className="card-grid">
-            {sortedResults.map((result, index) => (
-              <article
-                className={index === 0 ? "card-summary card-best" : "card-summary"}
-                key={result.id}
-              >
-                <div className="card-summary-header">
-                  <h3>{result.name}</h3>
-                  <span>{formatCurrency(result.netValue)}</span>
-                </div>
-                <div className="card-summary-body">
-                  <div>
-                    <span>Spend value</span>
-                    <strong>{formatCurrency(result.valueFromSpend)}</strong>
-                  </div>
-                  <div>
-                    <span>Benefits</span>
-                    <strong>{formatCurrency(result.benefitValue)}</strong>
-                  </div>
-                  <div>
-                    <span>Annual fee</span>
-                    <strong>{formatCurrency(result.annualFee)}</strong>
-                  </div>
-                  <div>
-                    <span>Total points</span>
-                    <strong>{result.points.toFixed(0)}</strong>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
+                        {cards.map((card) => (
+                          <option value={card.id} key={card.id}>
+                            {card.name}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr className="table-total">
+                <td>Total</td>
+                <td>{formatCurrency(annualSpendTotal)}</td>
+                <td />
+              </tr>
+            </tfoot>
+          </table>
         </section>
 
         <section className="panel">
@@ -1610,81 +1837,119 @@ export default function App() {
           <p className="panel-meta">
             Toggle benefits on and off, and adjust earning multipliers.
           </p>
-          <div className="cards-list">
-            {cards.map((card) => (
-              <div className="card-detail" key={card.id}>
-                <div className="card-detail-header">
-                  <div>
-                    <h3>{card.name}</h3>
-                    <div className="card-fee">
-                      <label>
-                        <span>Annual fee</span>
-                        <input
-                          type="number"
-                          min="0"
-                          value={card.annualFee}
-                          onChange={(event) =>
-                            handleAnnualFeeChange(card.id, event.target.value)
-                          }
-                        />
-                      </label>
-                    </div>
-                    {isBiltCard(card) && (
-                      <p className="card-note">
-                        Rent multiplier auto-adjusted:{" "}
-                        {(biltRentRates[card.id] ?? 1).toFixed(2)}x
-                      </p>
-                    )}
-                  </div>
-                  <button
-                    className="ghost"
-                    type="button"
-                    onClick={() => handleAddBenefit(card.id)}
-                  >
-                    Add benefit
-                  </button>
-                </div>
-                <div className="benefits">
-                  {card.benefits.length === 0 && (
-                    <p className="empty">No benefits yet.</p>
-                  )}
-                  {card.benefits.map((benefit) => (
-                    <label className="benefit" key={benefit.id}>
+          <div className="rates-actions">
+            <button type="button" className="ghost" onClick={handleResetCardRates}>
+              Reset Default Card Rates
+            </button>
+          </div>
+          <div className="benefits-table-wrap">
+            <table className="benefits-table">
+              <thead>
+                <tr>
+                  <th>Card</th>
+                  <th>Annual fee</th>
+                  <th>Benefits</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {cards.map((card) => (
+                  <tr key={card.id}>
+                    <td>
+                      <div className="card-name">
+                        <strong>{card.name}</strong>
+                        {isBiltCard(card) && (
+                          <span className="card-note">
+                            Rent multiplier: {(biltRentRates[card.id] ?? 1).toFixed(2)}x
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td>
                       <input
-                        type="checkbox"
-                        checked={benefit.enabled}
-                        onChange={() =>
-                          handleToggleBenefit(card.id, benefit.id)
-                        }
-                      />
-                      <span>{benefit.label}</span>
-                      <strong>{formatCurrency(benefit.value)}</strong>
-                    </label>
-                  ))}
-                </div>
-                <div className="rates">
-                  {categories.map((category) => (
-                    <label className="rate" key={`${card.id}-${category.key}`}>
-                      <span>{category.label}</span>
-                      <input
-                        type="number"
-                        min="0"
-                        step="0.5"
-                        value={card.rates[category.key]}
+                        type="text"
+                        inputMode="numeric"
+                        value={formatNumberInput(card.annualFee)}
                         onChange={(event) =>
-                          handleRateChange(
+                          handleAnnualFeeChange(
                             card.id,
-                            category.key,
-                            event.target.value
+                            parseNumberString(event.target.value)
                           )
                         }
                       />
-                      <span className="rate-suffix">x</span>
-                    </label>
+                    </td>
+                    <td>
+                      <div className="benefit-list">
+                        {card.benefits.length === 0 && (
+                          <span className="empty">No benefits yet.</span>
+                        )}
+                        {card.benefits.map((benefit) => (
+                          <label className="benefit-row" key={benefit.id}>
+                            <input
+                              type="checkbox"
+                              checked={benefit.enabled}
+                              onChange={() =>
+                                handleToggleBenefit(card.id, benefit.id)
+                              }
+                            />
+                            <span>{benefit.label}</span>
+                            <strong>{formatCurrency(benefit.value)}</strong>
+                          </label>
+                        ))}
+                      </div>
+                    </td>
+                    <td>
+                      <button
+                        className="ghost"
+                        type="button"
+                        onClick={() => handleAddBenefit(card.id)}
+                      >
+                        Add benefit
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="rates-table-wrap">
+            <table className="rates-table">
+              <thead>
+                <tr>
+                  <th>Category</th>
+                  {cards.map((card) => (
+                    <th key={card.id}>{card.name}</th>
                   ))}
-                </div>
-              </div>
-            ))}
+                </tr>
+              </thead>
+              <tbody>
+                {categories.map((category) => (
+                  <tr key={category.key}>
+                    <td>{category.label}</td>
+                    {cards.map((card) => (
+                      <td key={`${card.id}-${category.key}`}>
+                        <div className="rate-input">
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.5"
+                            value={card.rates[category.key]}
+                            onChange={(event) =>
+                              handleRateChange(
+                                card.id,
+                                category.key,
+                                event.target.value
+                              )
+                            }
+                          />
+                          <span className="rate-suffix">x</span>
+                        </div>
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </section>
 
@@ -1705,13 +1970,15 @@ export default function App() {
             <label>
               <span>Annual fee</span>
               <input
-                type="number"
-                min="0"
-                value={newCard.annualFee}
+                type="text"
+                inputMode="numeric"
+                value={formatNumberInput(newCard.annualFee)}
                 onChange={(event) =>
                   setNewCard((prev) => ({
                     ...prev,
-                    annualFee: parseNumberInput(event.target.value)
+                    annualFee: parseNumberInput(
+                      parseNumberString(event.target.value)
+                    )
                   }))
                 }
               />

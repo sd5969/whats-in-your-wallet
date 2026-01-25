@@ -3,16 +3,23 @@
 :root {
   color-scheme: light;
   font-family: "Manrope", sans-serif;
-  --ink: #101223;
-  --muted: #5d627a;
-  --accent: #f15a50;
-  --accent-2: #f4b158;
-  --accent-3: #5fd3c4;
+  --ink: #0c0c0c;
+  --muted: #595959;
+  --accent: #70201d;
+  --accent-2: #962d27;
+  --accent-3: #d06965;
   --panel: rgba(255, 255, 255, 0.9);
   --panel-strong: rgba(255, 255, 255, 0.97);
-  --stroke: rgba(16, 18, 35, 0.12);
-  --shadow: 0 18px 40px rgba(12, 15, 35, 0.18);
-  --radius: 22px;
+  --stroke: rgba(12, 12, 12, 0.12);
+  --shadow: 0 16px 28px rgba(12, 12, 12, 0.14);
+  --radius: 18px;
+  --neutral-100: #f5f5f5;
+  --neutral-200: #e5e5e5;
+  --neutral-300: #dedede;
+  --neutral-400: #c7c7c7;
+  --neutral-500: #a6a6a6;
+  --neutral-600: #7f7f7f;
+  --neutral-700: #3f3f3f;
 }
 
 * {
@@ -23,7 +30,7 @@ body {
   margin: 0;
   min-height: 100vh;
   color: var(--ink);
-  background: radial-gradient(circle at top right, #fff1ea 0%, #f6efe8 45%, #eaf0f7 100%);
+  background: radial-gradient(circle at top right, #f5f5f5 0%, #ededed 45%, #e5e5e5 100%);
 }
 
 #root {
@@ -45,17 +52,17 @@ body {
   border-radius: 50%;
   filter: blur(0);
   z-index: 0;
-  opacity: 0.6;
+  opacity: 0.45;
 }
 
 .page::before {
-  background: radial-gradient(circle, rgba(241, 90, 80, 0.35), transparent 70%);
+  background: radial-gradient(circle, rgba(150, 45, 39, 0.2), transparent 70%);
   top: -80px;
   right: 12%;
 }
 
 .page::after {
-  background: radial-gradient(circle, rgba(95, 211, 196, 0.3), transparent 70%);
+  background: radial-gradient(circle, rgba(222, 153, 151, 0.22), transparent 70%);
   bottom: -100px;
   left: -80px;
 }
@@ -91,10 +98,10 @@ body {
 }
 
 .hero-panel {
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(244, 177, 88, 0.12));
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(222, 153, 151, 0.08));
   padding: 22px;
   border-radius: 18px;
-  border: 1px solid rgba(241, 90, 80, 0.2);
+  border: 1px solid rgba(12, 12, 12, 0.12);
   box-shadow: var(--shadow);
 }
 
@@ -110,7 +117,7 @@ body {
 
 .pnl-table {
   display: grid;
-  gap: 10px;
+  gap: 0;
   margin-bottom: 16px;
   min-width: 640px;
   width: max-content;
@@ -140,9 +147,9 @@ body {
 
 .pnl-row {
   background: rgba(255, 255, 255, 0.7);
-  border-radius: 12px;
+  border-radius: 0;
   padding: 8px 10px;
-  border: 1px solid var(--stroke);
+  border-bottom: 1px solid var(--stroke);
 }
 
 .pnl-label {
@@ -170,6 +177,7 @@ body {
 
 .pnl-total-row {
   background: rgba(255, 255, 255, 0.9);
+  border-bottom: none;
 }
 
 .save-status {
@@ -337,43 +345,45 @@ body {
 
 .scenario-list {
   display: grid;
-  gap: 16px;
-}
-
-.scenario-row-chart {
-  background: rgba(255, 255, 255, 0.7);
-  border-radius: 16px;
-  padding: 16px;
-  border: 1px solid var(--stroke);
-}
-
-.scenario-row-header {
-  display: flex;
-  justify-content: space-between;
   gap: 12px;
+}
+
+.scenario-bar-row {
+  display: grid;
+  grid-template-columns: minmax(160px, 220px) 12px 1fr minmax(120px, 160px);
+  gap: 16px;
   align-items: center;
-  flex-wrap: wrap;
+  padding: 4px 0;
 }
 
-.scenario-row-header h3 {
-  margin: 0 0 4px;
-  font-size: 1.05rem;
+.scenario-axis {
+  width: 2px;
+  height: 100%;
+  background: #000;
+  justify-self: center;
 }
 
-.scenario-total-points {
-  text-align: right;
+.scenario-bar-label {
+  font-weight: 600;
 }
 
-.scenario-total-points span {
-  color: var(--muted);
-  font-size: 0.85rem;
+.scenario-bar-area {
+  position: relative;
+  display: grid;
+  gap: 6px;
+}
+
+.scenario-bar-value {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--ink);
+  text-align: left;
 }
 
 .scenario-bar {
-  margin-top: 12px;
-  height: 20px;
+  height: 16px;
   background: rgba(255, 255, 255, 0.6);
-  border-radius: 999px;
+  border-radius: 4px;
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -388,6 +398,19 @@ body {
 .scenario-segment {
   height: 100%;
   display: block;
+  position: relative;
+  overflow: hidden;
+}
+
+.segment-label {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.65rem;
+  color: #fff;
+  white-space: nowrap;
+  pointer-events: none;
 }
 
 .scenario-muted {
@@ -396,43 +419,95 @@ body {
   padding-left: 8px;
 }
 
-.table {
-  display: grid;
-  gap: 12px;
+.assignment-table,
+.benefits-table,
+.rates-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
 }
 
-.table-row {
-  display: grid;
-  grid-template-columns: 1.2fr 1fr 1.2fr;
-  gap: 12px;
-  align-items: center;
-  background: var(--panel-strong);
-  padding: 12px 16px;
-  border-radius: 16px;
-  border: 1px solid var(--stroke);
+.assignment-table th,
+.assignment-table td,
+.benefits-table th,
+.benefits-table td,
+.rates-table th,
+.rates-table td {
+  border-bottom: 1px solid var(--stroke);
+  padding: 10px 12px;
+  text-align: left;
+  vertical-align: top;
 }
 
-.table-head {
-  background: transparent;
-  border: none;
-  padding: 0 4px 6px;
-  font-size: 0.85rem;
+.assignment-table thead th,
+.benefits-table thead th,
+.rates-table thead th {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
   color: var(--muted);
 }
 
-.table-total {
-  background: rgba(255, 255, 255, 0.85);
-  font-weight: 600;
+.assignment-table input,
+.assignment-table select,
+.benefits-table input,
+.rates-table input,
+.rates-table select {
+  border-radius: 10px;
+  border: 1px solid var(--stroke);
+  padding: 6px 8px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  width: 100%;
 }
 
-.table-row input,
-.table-row select {
-  border-radius: 12px;
-  border: 1px solid var(--stroke);
-  padding: 10px 12px;
-  font-size: 0.95rem;
-  outline: none;
-  font-family: inherit;
+.assignment-table tfoot td {
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.benefits-table-wrap,
+.rates-table-wrap {
+  overflow-x: auto;
+}
+
+.rates-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+
+.card-name {
+  display: grid;
+  gap: 4px;
+}
+
+.benefit-list {
+  display: grid;
+  gap: 6px;
+}
+
+.benefit-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.rate-input {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px;
+  align-items: center;
+}
+
+.rate-suffix {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.rate-input input {
+  text-align: right;
 }
 
 .bulk-assign {
@@ -518,8 +593,8 @@ body {
 }
 
 .card-best {
-  border-color: rgba(241, 90, 80, 0.5);
-  box-shadow: 0 20px 40px rgba(241, 90, 80, 0.2);
+  border-color: rgba(150, 45, 39, 0.45);
+  box-shadow: 0 20px 40px rgba(150, 45, 39, 0.18);
 }
 
 .card-summary-header {
@@ -543,6 +618,57 @@ body {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   gap: 12px;
+}
+
+.category-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.category-legend .legend-item {
+  font-size: 0.85rem;
+}
+
+.card-spend-bar {
+  display: grid;
+  grid-template-columns: minmax(120px, 140px) 1fr;
+  gap: 12px;
+  align-items: center;
+  margin: 12px 0;
+}
+
+.card-spend-bar__scale {
+  height: 16px;
+  width: 100%;
+  background: rgba(16, 18, 35, 0.08);
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.card-spend-bar__stack {
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+}
+
+.card-spend-bar__segment {
+  height: 100%;
+  display: block;
+}
+
+.card-spend-bar__meta span {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.card-spend-bar__meta strong {
+  display: block;
+  font-size: 1.05rem;
 }
 
 .card-summary-body span {
@@ -632,29 +758,6 @@ body {
   gap: 10px;
 }
 
-.rate {
-  display: grid;
-  grid-template-columns: 1fr auto auto;
-  align-items: center;
-  gap: 8px;
-  background: #fff;
-  padding: 10px 12px;
-  border-radius: 12px;
-  border: 1px solid var(--stroke);
-}
-
-.rate input {
-  width: 80px;
-  border: 1px solid var(--stroke);
-  border-radius: 10px;
-  padding: 6px 8px;
-  font-family: inherit;
-}
-
-.rate-suffix {
-  color: var(--muted);
-  font-size: 0.85rem;
-}
 
 .mode-toggle {
   display: flex;
@@ -671,27 +774,116 @@ body {
 }
 
 .page--compact .layout {
-  gap: 16px;
+  gap: 10px;
 }
 
 .page--compact .panel {
-  padding: 18px;
-}
-
-.page--compact .table-row {
-  padding: 8px 12px;
+  padding: 12px;
+  border-radius: 12px;
 }
 
 .page--compact .scenario-row-chart {
-  padding: 12px;
+  padding: 10px;
 }
 
 .page--compact .cards-list {
-  gap: 12px;
+  gap: 8px;
 }
 
 .page--compact .card-detail {
+  padding: 10px;
+  border-radius: 12px;
+}
+
+.page--compact .hero {
+  margin-bottom: 20px;
+}
+
+.page--compact .hero h1 {
+  font-size: clamp(1.6rem, 2.2vw, 2.4rem);
+}
+
+.page--compact .hero-panel {
   padding: 14px;
+}
+
+.page--compact .panel h2 {
+  font-size: 1.1rem;
+}
+
+.page--compact .panel-meta {
+  margin-bottom: 10px;
+  font-size: 0.85rem;
+}
+
+.page--compact .assignment-table,
+.page--compact .benefits-table,
+.page--compact .rates-table {
+  font-size: 0.95rem;
+}
+
+.page--compact .assignment-table th,
+.page--compact .assignment-table td,
+.page--compact .benefits-table th,
+.page--compact .benefits-table td,
+.page--compact .rates-table th,
+.page--compact .rates-table td {
+  padding: 6px 8px;
+}
+
+.page--compact .assignment-table input,
+.page--compact .assignment-table select,
+.page--compact .benefits-table input,
+.page--compact .rates-table input {
+  padding: 4px 6px;
+  font-size: 0.9rem;
+}
+
+.page--compact .split-row {
+  grid-template-columns: minmax(140px, 1fr) 64px auto auto;
+  gap: 6px;
+}
+
+.page--compact .split-actions {
+  font-size: 0.85rem;
+}
+
+.page--compact .pnl-table {
+  gap: 6px;
+}
+
+.page--compact .pnl-header,
+.page--compact .pnl-row {
+  font-size: 0.8rem;
+  padding: 6px 8px;
+  border-radius: 10px;
+}
+
+.page--compact .pnl-header {
+  letter-spacing: 0.06em;
+}
+
+.page--compact .scenario-legend {
+  gap: 8px;
+  font-size: 0.85rem;
+}
+
+.page--compact .scenario-row-header h3 {
+  font-size: 0.95rem;
+}
+
+.page--compact .scenario-bar {
+  height: 14px;
+}
+
+
+.page--compact .benefit {
+  padding: 6px 8px;
+  font-size: 0.85rem;
+}
+
+.page--compact .scenario-card-picker {
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
 }
 
 
@@ -720,7 +912,7 @@ body {
   border-radius: 12px;
   padding: 10px 16px;
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  color: #1a1a1a;
+  color: #fff;
   font-weight: 600;
   cursor: pointer;
 }

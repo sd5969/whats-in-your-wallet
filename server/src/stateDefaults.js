@@ -54,7 +54,7 @@ const cards = [
     rates: {
       rent: 0,
       dining: 3,
-      groceries: 3,
+      groceries: 1,
       flights: 2,
       travelOther: 2,
       gas: 1,
@@ -124,11 +124,11 @@ const cards = [
     annualFee: 325,
     cpp: 0.018,
     rates: {
-      rent: 1,
+      rent: 0,
       dining: 4,
       groceries: 4,
       flights: 3,
-      travelOther: 3,
+      travelOther: 1,
       gas: 1,
       streaming: 1,
       misc: 1
@@ -144,11 +144,11 @@ const cards = [
     annualFee: 395,
     cpp: 0.015,
     rates: {
-      rent: 1,
+      rent: 0,
       dining: 2,
       groceries: 2,
       flights: 5,
-      travelOther: 5,
+      travelOther: 2,
       gas: 2,
       streaming: 2,
       misc: 2
@@ -165,9 +165,9 @@ const cards = [
     annualFee: 95,
     cpp: 0.015,
     rates: {
-      rent: 1,
+      rent: 0,
       dining: 3,
-      groceries: 3,
+      groceries: 1,
       flights: 2,
       travelOther: 2,
       gas: 1,
@@ -185,7 +185,7 @@ const cards = [
     annualFee: 0,
     cpp: 0.01,
     rates: {
-      rent: 1,
+      rent: 0,
       dining: 2,
       groceries: 2,
       flights: 2,
