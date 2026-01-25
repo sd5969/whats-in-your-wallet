@@ -42,6 +42,7 @@ const scenarioSchema = new mongoose.Schema(
   {
     id: { type: String, required: true },
     name: { type: String, required: true },
+    favorite: { type: Boolean, default: false },
     categories: { type: [categorySchema], default: [] },
     cards: { type: [cardSchema], default: [] },
     spend: { type: Map, of: Number, default: {} },
@@ -53,6 +54,7 @@ const scenarioSchema = new mongoose.Schema(
 
 const workspaceSchema = new mongoose.Schema(
   {
+    userId: { type: String, default: "default", index: true },
     scenarios: { type: [scenarioSchema], default: [] },
     activeScenarioId: { type: String, default: "" }
   },

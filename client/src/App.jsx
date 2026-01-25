@@ -214,6 +214,9 @@ const defaultSpend = {
   misc: 14200
 };
 
+const USER_STORAGE_KEY = "cvs-users";
+const ACTIVE_USER_KEY = "cvs-active-user";
+
 function formatCurrency(value) {
   return Number(value || 0).toLocaleString("en-US", {
     style: "currency",
@@ -360,6 +363,7 @@ function normalizeScenario(scenario, fallbackName = "Default scenario") {
   return {
     id: scenario?.id || `scenario-${Date.now()}`,
     name: scenario?.name || fallbackName,
+    favorite: Boolean(scenario?.favorite),
     categories,
     cards: migratedCards,
     spend: normalizedSpend,
@@ -569,6 +573,7 @@ function createScenario(name) {
     {
       id: `scenario-${Date.now()}`,
       name,
+      favorite: false,
       categories: initialCategories,
       cards: initialCards,
       spend: defaultSpend,
@@ -605,6 +610,8 @@ function buildDefaultCards() {
 }
 
 export default function App() {
+  const [users, setUsers] = useState([]);
+  const [activeUserId, setActiveUserId] = useState("");
   const [scenarios, setScenarios] = useState([]);
   const [activeScenarioId, setActiveScenarioId] = useState("");
 
@@ -624,6 +631,36 @@ export default function App() {
   const [saveStatus, setSaveStatus] = useState("idle");
   const [error, setError] = useState("");
   const hasLoaded = useRef(false);
+
+  useEffect(() => {
+    const storedUsers = JSON.parse(
+      localStorage.getItem(USER_STORAGE_KEY) || "[]"
+    );
+    const initialUsers =
+      storedUsers.length > 0
+        ? storedUsers
+        : [{ id: "default", name: "Default user" }];
+    const storedActive = localStorage.getItem(ACTIVE_USER_KEY);
+    setUsers(initialUsers);
+    setActiveUserId(
+      initialUsers.find((user) => user.id === storedActive)?.id ||
+        initialUsers[0].id
+    );
+  }, []);
+
+  useEffect(() => {
+    if (!users.length) {
+      return;
+    }
+    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(users));
+  }, [users]);
+
+  useEffect(() => {
+    if (!activeUserId) {
+      return;
+    }
+    localStorage.setItem(ACTIVE_USER_KEY, activeUserId);
+  }, [activeUserId]);
 
   const activeScenario = useMemo(() => {
     if (!scenarios.length) {
@@ -649,6 +686,40 @@ export default function App() {
     setScenarios((prev) =>
       prev.map((scenario) =>
         scenario.id === activeScenario.id ? updater(scenario) : scenario
+      )
+    );
+  }
+
+  function handleAddUser() {
+    const name = window.prompt("New user name");
+    if (!name) {
+      return;
+    }
+    const trimmed = name.trim();
+    if (!trimmed) {
+      return;
+    }
+    const exists = users.some(
+      (user) => user.name.toLowerCase() === trimmed.toLowerCase()
+    );
+    if (exists) {
+      window.alert("That user already exists.");
+      return;
+    }
+    const newUser = {
+      id: `user-${Date.now()}`,
+      name: trimmed
+    };
+    setUsers((prev) => [...prev, newUser]);
+    setActiveUserId(newUser.id);
+  }
+
+  function toggleScenarioFavorite(id) {
+    setScenarios((prev) =>
+      prev.map((scenario) =>
+        scenario.id === id
+          ? { ...scenario, favorite: !scenario.favorite }
+          : scenario
       )
     );
   }
@@ -847,10 +918,22 @@ export default function App() {
     if (!scenarios.length) {
       return;
     }
+    const favorites = scenarios.filter((scenario) => scenario.favorite);
     const confirmDelete = window.confirm(
-      "Delete all scenarios and reset to a single default?"
+      favorites.length
+        ? "Delete all non-favorite scenarios?"
+        : "Delete all scenarios and reset to a single default?"
     );
     if (!confirmDelete) {
+      return;
+    }
+    if (favorites.length > 0) {
+      setScenarios(favorites);
+      setActiveScenarioId(
+        favorites.find((scenario) => scenario.id === activeScenarioId)?.id ||
+          favorites[0]?.id ||
+          ""
+      );
       return;
     }
     const baseScenario = scenarios[0];
@@ -869,11 +952,18 @@ export default function App() {
   }
 
   useEffect(() => {
+    if (!activeUserId) {
+      return;
+    }
     async function load() {
+      hasLoaded.current = false;
       setStatus("loading");
+      setSaveStatus("idle");
       setError("");
+      setScenarios([]);
+      setActiveScenarioId("");
       try {
-        const data = await fetchState();
+        const data = await fetchState(activeUserId);
         const loadedScenarios =
           data?.scenarios?.length > 0
             ? data.scenarios.map((scenario, index) =>
@@ -903,19 +993,22 @@ export default function App() {
     }
 
     load();
-  }, []);
+  }, [activeUserId]);
 
   useEffect(() => {
-    if (!hasLoaded.current) {
+    if (!hasLoaded.current || status !== "ready" || scenarios.length === 0) {
       return;
     }
 
     setSaveStatus("saving");
     const handle = setTimeout(() => {
-      saveState({
-        scenarios: scenarios.map(normalizeScenarioForSave),
-        activeScenarioId
-      })
+      saveState(
+        {
+          scenarios: scenarios.map(normalizeScenarioForSave),
+          activeScenarioId
+        },
+        activeUserId
+      )
         .then(() => setSaveStatus("saved"))
         .catch((err) => {
           setError(err.message);
@@ -924,7 +1017,7 @@ export default function App() {
     }, 800);
 
     return () => clearTimeout(handle);
-  }, [activeScenarioId, scenarios]);
+  }, [activeScenarioId, scenarios, status]);
 
   const scenarioCalc = useMemo(
     () => computeScenarioResults(activeScenario),
@@ -1194,9 +1287,9 @@ export default function App() {
   }
 
   const annualSpendTotal = Object.values(spend).reduce(
-    (sum, value) => sum + Number(value || 0),
-    0
-  );
+      (sum, value) => sum + Number(value || 0),
+      0
+    );
 
   const scenarioSummaries = useMemo(
     () =>
@@ -1213,6 +1306,7 @@ export default function App() {
           return {
             id: scenario.id,
             name: scenario.name,
+            favorite: Boolean(scenario.favorite),
             totalNet,
             netByCard: activeCards.map((result) => ({
               id: result.id,
@@ -1225,9 +1319,9 @@ export default function App() {
     [scenarios]
   );
 
-  const maxScenarioNet = useMemo(() => {
+  const maxScenarioNetAbs = useMemo(() => {
     return scenarioSummaries.reduce(
-      (max, summary) => Math.max(max, summary.totalNet || 0),
+      (max, summary) => Math.max(max, Math.abs(summary.totalNet || 0)),
       0
     );
   }, [scenarioSummaries]);
@@ -1272,6 +1366,24 @@ export default function App() {
             Toggle benefits you actually use, assign each spending category to a
             card, and see which lineup earns the most value after fees.
           </p>
+          <div className="user-switcher">
+            <label>
+              <span>User</span>
+              <select
+                value={activeUserId}
+                onChange={(event) => setActiveUserId(event.target.value)}
+              >
+                {users.map((user) => (
+                  <option key={user.id} value={user.id}>
+                    {user.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button type="button" className="ghost" onClick={handleAddUser}>
+              Add user
+            </button>
+          </div>
           {status === "loading" && (
             <p className="status">Loading saved workspace...</p>
           )}
@@ -1523,27 +1635,44 @@ export default function App() {
                 </div>
               ))}
             </div>
-            <div className="scenario-list">
+            <div className="scenario-bars">
               {scenarioSummaries.map((summary) => {
+                const barWidth = maxScenarioNetAbs
+                  ? `${(Math.abs(summary.totalNet) / maxScenarioNetAbs) * 100}%`
+                  : "0%";
                 return (
-                  <div className="scenario-bar-row" key={summary.id}>
-                    <div className="scenario-bar-label">
+                  <div
+                    className={
+                      summary.id === activeScenarioId
+                        ? "scenario-row scenario-row--active"
+                        : "scenario-row"
+                    }
+                    key={summary.id}
+                    onClick={() => setActiveScenarioId(summary.id)}
+                  >
+                    <div className="scenario-row-label">
                       <span>{summary.name}</span>
+                      <button
+                        type="button"
+                        className={
+                          summary.favorite
+                            ? "scenario-favorite scenario-favorite--active"
+                            : "scenario-favorite"
+                        }
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          toggleScenarioFavorite(summary.id);
+                        }}
+                      >
+                        {summary.favorite ? "Pinned" : "Pin"}
+                      </button>
                     </div>
-                    <div className="scenario-axis" />
-                    <div className="scenario-bar-area">
-                      <div className="scenario-bar-scale">
-                        {summary.totalNet === 0 && (
-                          <span className="scenario-muted">No spend routed</span>
-                        )}
-                        <div
-                          className="scenario-bar"
-                          style={{
-                            width: maxScenarioNet
-                              ? `${(summary.totalNet / maxScenarioNet) * 100}%`
-                              : "0%"
-                          }}
-                        >
+                    <div className="scenario-row-bar">
+                      {summary.totalNet === 0 && (
+                        <span className="scenario-muted">No spend routed</span>
+                      )}
+                      <div className="scenario-bar-track">
+                        <div className="scenario-bar" style={{ width: barWidth }}>
                           {summary.totalNet > 0 &&
                             summary.netByCard.map((entry) => {
                               const cardIndex = scenarioCards.findIndex(
@@ -1572,7 +1701,7 @@ export default function App() {
                         </div>
                       </div>
                     </div>
-                    <div className="scenario-bar-value">
+                    <div className="scenario-row-value">
                       {formatCurrency(summary.totalNet)}
                     </div>
                   </div>

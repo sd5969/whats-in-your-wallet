@@ -219,6 +219,7 @@ const assignments = categories.reduce((acc, category) => {
 const scenario = {
   id: "default",
   name: "Default scenario",
+  favorite: false,
   categories,
   cards,
   spend,

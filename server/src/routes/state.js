@@ -4,6 +4,10 @@ import defaults, { createDefaultScenario } from "../stateDefaults.js";
 
 const router = express.Router();
 
+function getUserId(req) {
+  return (req.query.user || "default").toString().trim() || "default";
+}
+
 function normalizePayload(payload) {
   if (!payload) {
     return defaults;
@@ -34,15 +38,23 @@ function normalizePayload(payload) {
 
 router.get("/", async (req, res) => {
   try {
-    let workspace = await Workspace.findOne();
+    const userId = getUserId(req);
+    let workspace = await Workspace.findOne({ userId });
+    if (!workspace && userId === "default") {
+      workspace = await Workspace.findOne({ userId: { $exists: false } });
+      if (workspace) {
+        workspace.userId = "default";
+        await workspace.save();
+      }
+    }
     if (!workspace) {
-      workspace = await Workspace.create(defaults);
+      workspace = await Workspace.create({ ...defaults, userId });
       return res.json(workspace);
     }
 
     if (!workspace.scenarios || workspace.scenarios.length === 0) {
       const migrated = normalizePayload(workspace.toObject());
-      workspace = await Workspace.findOneAndUpdate({}, migrated, {
+      workspace = await Workspace.findOneAndUpdate({ userId }, migrated, {
         new: true,
         upsert: true,
         runValidators: true,
@@ -58,13 +70,18 @@ router.get("/", async (req, res) => {
 
 router.put("/", async (req, res) => {
   try {
+    const userId = getUserId(req);
     const payload = normalizePayload(req.body);
-    const workspace = await Workspace.findOneAndUpdate({}, payload, {
-      new: true,
-      upsert: true,
-      runValidators: true,
-      setDefaultsOnInsert: true
-    });
+    const workspace = await Workspace.findOneAndUpdate(
+      { userId },
+      { ...payload, userId },
+      {
+        new: true,
+        upsert: true,
+        runValidators: true,
+        setDefaultsOnInsert: true
+      }
+    );
 
     res.json(workspace);
   } catch (error) {
