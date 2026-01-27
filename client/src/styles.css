@@ -913,7 +913,22 @@ body {
   }
 }
 
+@media (max-width: 1060px) {
+  body {
+    overflow-x: auto;
+  }
+
+  #root {
+    min-width: 1060px;
+  }
+
+  .page {
+    min-width: 1060px;
+  }
+}
+
 @media (max-width: 600px) {
+
   .page {
     padding: 32px 5vw 60px;
   }
