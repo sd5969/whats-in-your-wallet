@@ -53,7 +53,3 @@ This file is a short handoff for the next Codex session.
 ## Known Issues / Notes
 - Scenario comparison bar length was problematic earlier; currently uses inline width on `.scenario-bar`.
 - If scenario saves fail for many scenarios, server JSON limit was increased to 2mb.
-
-## Git History
-- Author fixed for all commits: `Sanjit D <sdlynx@gmail.com>` with history rewrite.
-
