@@ -53,7 +53,7 @@ the server clears all stored workspaces.
 
 This app works well with Apache serving the static client and proxying API
 requests to the Node server. The API is mounted at
-`/card_stuio/services/` so that the Express routes can still use `/api/...`
+`/card_studio/services/` so that the Express routes can still use `/api/...`
 (`GET /api/state`, `PUT /api/state`, etc.).
 
 ### 1) Build and place the client
@@ -67,12 +67,21 @@ npm run build
 Copy `client/dist` to your Apache document root for the site, e.g.
 `/var/www/card_studio/`.
 
+If you want to host the UI under a subfolder (e.g. `https://abc.com/test/`),
+set a base path before building:
+
+```
+VITE_BASE_PATH=/test/
+```
+
+Then rebuild the client so asset paths are generated with the subfolder prefix.
+
 ### 2) Configure the client API base
 
 Set the client API base to the proxied subpath:
 
 ```
-VITE_API_URL=/card_stuio/services
+VITE_API_URL=/card_studio/services
 ```
 
 Rebuild the client after changing the value.
@@ -145,3 +154,24 @@ Example Apache vhost snippet:
 Notes:
 - The trailing slash matters for `ProxyPass` mappings.
 - If you use HTTPS, place the proxy config in your SSL vhost block.
+
+#### Subfolder hosting example
+
+If you want the UI at `https://abc.com/test/`, set `VITE_BASE_PATH=/test/`
+and use an Apache alias. Example snippet:
+
+```
+Alias /test/ /var/www/card_studio/
+
+<Directory /var/www/card_studio>
+  Options FollowSymLinks
+  AllowOverride None
+  Require all granted
+</Directory>
+
+RewriteEngine On
+RewriteCond %{REQUEST_URI} ^/test/
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^/test/ /test/index.html [L]
+```
