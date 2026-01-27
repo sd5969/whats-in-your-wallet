@@ -5,7 +5,7 @@ spend, benefits, and card assignments.
 
 ## Structure
 
-- `server`: Express API with MongoDB (Mongoose)
+- `server`: Express API with in-memory session storage
 - `client`: React UI (Vite)
 
 ## Setup
@@ -16,6 +16,8 @@ spend, benefits, and card assignments.
 cp server/.env.example server/.env
 cp client/.env.example client/.env
 ```
+
+Update `server/.env` with a strong `SESSION_SECRET` for production deployments.
 
 2. Install dependencies.
 
@@ -40,55 +42,9 @@ npm run dev
 
 The UI runs at `http://localhost:5173` and the API at `http://localhost:5050`.
 
-## Export / Import Workspace
+## Storage behavior
 
-These scripts read from the `MONGODB_URI` in `server/.env`, so run them from the
-`server` directory (or ensure `server/.env` is in your working directory).
-
-Export to stdout:
-
-```bash
-node scripts/exportWorkspace.js
-```
-
-Export to a file:
-
-```bash
-node scripts/exportWorkspace.js /path/to/workspace.json
-```
-
-Import from a file:
-
-```bash
-node scripts/importWorkspace.js /path/to/workspace.json
-```
-
-Import from stdin:
-
-```bash
-cat /path/to/workspace.json | node scripts/importWorkspace.js
-```
-
-Reset the saved workspace:
-
-```bash
-node scripts/resetWorkspace.js
-```
-
-Export, reset, and reimport (with backup file path optional):
-
-```bash
-node scripts/resetWithBackup.js /path/to/workspace-backup.json
-```
-
-Migrate spend-only into the latest defaults (keeps your spend, resets cards/benefits/assignments):
-
-```bash
-node scripts/migrateSpendOnly.js
-```
-
-Migrate spend + earning rates into the latest defaults (keeps your spend and per-card multipliers, resets benefits/assignments):
-
-```bash
-node scripts/migrateSpendAndRates.js
-```
+Workspace data is stored in the server's in-memory session store and scoped to
+the browser session cookie. Clearing cookies, using an incognito window, or
+opening the app in a different browser creates a fresh workspace. Restarting
+the server clears all stored workspaces.

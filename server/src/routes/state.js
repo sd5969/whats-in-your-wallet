@@ -1,8 +1,9 @@
 import express from "express";
-import { Workspace } from "../models/Workspace.js";
 import defaults, { createDefaultScenario } from "../stateDefaults.js";
 
 const router = express.Router();
+const isProduction = process.env.NODE_ENV === "production";
+const sessionCookieName = "cvs.sid";
 
 function getUserId(req) {
   return (req.query.user || "default").toString().trim() || "default";
@@ -36,30 +37,35 @@ function normalizePayload(payload) {
   };
 }
 
+function ensureStore(req) {
+  if (!req.session) {
+    return null;
+  }
+  if (!req.session.workspaces) {
+    req.session.workspaces = {};
+  }
+  return req.session.workspaces;
+}
+
 router.get("/", async (req, res) => {
   try {
     const userId = getUserId(req);
-    let workspace = await Workspace.findOne({ userId });
-    if (!workspace && userId === "default") {
-      workspace = await Workspace.findOne({ userId: { $exists: false } });
-      if (workspace) {
-        workspace.userId = "default";
-        await workspace.save();
-      }
+    const store = ensureStore(req);
+    if (!store) {
+      return res.status(500).json({ message: "Session unavailable" });
     }
+    let workspace = store[userId];
+
     if (!workspace) {
-      workspace = await Workspace.create({ ...defaults, userId });
+      workspace = { ...defaults, userId };
+      store[userId] = workspace;
       return res.json(workspace);
     }
 
     if (!workspace.scenarios || workspace.scenarios.length === 0) {
-      const migrated = normalizePayload(workspace.toObject());
-      workspace = await Workspace.findOneAndUpdate({ userId }, migrated, {
-        new: true,
-        upsert: true,
-        runValidators: true,
-        setDefaultsOnInsert: true
-      });
+      const migrated = normalizePayload(workspace);
+      workspace = { ...migrated, userId };
+      store[userId] = workspace;
     }
 
     res.json(workspace);
@@ -72,21 +78,40 @@ router.put("/", async (req, res) => {
   try {
     const userId = getUserId(req);
     const payload = normalizePayload(req.body);
-    const workspace = await Workspace.findOneAndUpdate(
-      { userId },
-      { ...payload, userId },
-      {
-        new: true,
-        upsert: true,
-        runValidators: true,
-        setDefaultsOnInsert: true
-      }
-    );
+    const store = ensureStore(req);
+    if (!store) {
+      return res.status(500).json({ message: "Session unavailable" });
+    }
+    const workspace = { ...payload, userId };
+    store[userId] = workspace;
 
     res.json(workspace);
   } catch (error) {
     res.status(500).json({ message: "Failed to save state" });
   }
+});
+
+router.delete("/", (req, res) => {
+  const store = ensureStore(req);
+  if (!store) {
+    return res.status(500).json({ message: "Session unavailable" });
+  }
+  if (req.query.user) {
+    const userId = getUserId(req);
+    delete store[userId];
+    return res.status(204).end();
+  }
+  return req.session.destroy((error) => {
+    if (error) {
+      return res.status(500).json({ message: "Failed to reset state" });
+    }
+    res.clearCookie(sessionCookieName, {
+      httpOnly: true,
+      sameSite: isProduction ? "none" : "lax",
+      secure: isProduction
+    });
+    return res.status(204).end();
+  });
 });
 
 export default router;
