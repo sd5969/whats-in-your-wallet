@@ -25,7 +25,8 @@ const cards = [
       gas: 1,
       streaming: 1,
       amazon: 1,
-      misc: 1
+      misc: 1,
+      cpp: 0.015
     },
     benefits: [
       {
@@ -50,7 +51,8 @@ const cards = [
       gas: 1,
       streaming: 1,
       amazon: 1,
-      misc: 1
+      misc: 1,
+      cpp: 0.015
     },
     benefits: [
       {
@@ -81,7 +83,8 @@ const cards = [
       gas: 2,
       streaming: 2,
       amazon: 2,
-      misc: 2
+      misc: 2,
+      cpp: 0.015
     },
     benefits: [
       {
@@ -108,7 +111,7 @@ const cards = [
     id: "amex-gold",
     name: "Amex Gold",
     annualFee: 325,
-    cpp: 0.018,
+    cpp: 0.015,
     rates: {
       rent: 0,
       dining: 4,
@@ -118,7 +121,8 @@ const cards = [
       gas: 1,
       streaming: 1,
       amazon: 1,
-      misc: 1
+      misc: 1,
+      cpp: 0.015
     },
     benefits: [
       { id: "amex-dining", label: "Dining credits", value: 120, enabled: false },
@@ -140,7 +144,8 @@ const cards = [
       gas: 2,
       streaming: 2,
       amazon: 2,
-      misc: 2
+      misc: 2,
+      cpp: 0.015
     },
     benefits: [
       { id: "vx-credit", label: "Annual travel credit", value: 300, enabled: true },
@@ -163,7 +168,8 @@ const cards = [
       gas: 1,
       streaming: 3,
       amazon: 1,
-      misc: 1
+      misc: 1,
+      cpp: 0.015
     },
     benefits: [
       { id: "csp-hotel", label: "Annual hotel credit", value: 50, enabled: false },
@@ -185,7 +191,8 @@ const cards = [
       gas: 2,
       streaming: 2,
       amazon: 2,
-      misc: 2
+      misc: 2,
+      cpp: 0.01
     },
     benefits: [
       { id: "apple-nftf", label: "No foreign transaction fees", value: 0, enabled: true }
@@ -205,7 +212,8 @@ const cards = [
       gas: 3,
       streaming: 3,
       amazon: 3,
-      misc: 3
+      misc: 3,
+      cpp: 0.01
     },
     benefits: [
       { id: "rh-no-ftf", label: "No foreign transaction fees", value: 0, enabled: true },
@@ -226,7 +234,8 @@ const cards = [
       gas: 2,
       streaming: 1,
       amazon: 5,
-      misc: 1
+      misc: 1,
+      cpp: 0.01
     },
     benefits: [
       { id: "amazon-prime", label: "Amazon Prime", value: -139, enabled: true },
@@ -238,8 +247,8 @@ const cards = [
 const spend = {
   dining: 10100,
   groceries: 1200,
-  flights: 3500,
-  travelOther: 3500,
+  flights: 0,
+  travelOther: 7000,
   rent: 49500,
   gas: 300,
   streaming: 0,

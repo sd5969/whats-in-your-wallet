@@ -28,7 +28,8 @@ const initialCards = [
       gas: 1,
       streaming: 1,
       amazon: 1,
-      misc: 1
+      misc: 1,
+      cpp: 0.015
     },
     benefits: [
       {
@@ -53,7 +54,8 @@ const initialCards = [
       gas: 1,
       streaming: 1,
       amazon: 1,
-      misc: 1
+      misc: 1,
+      cpp: 0.015
     },
     benefits: [
       {
@@ -84,7 +86,8 @@ const initialCards = [
       gas: 2,
       streaming: 2,
       amazon: 2,
-      misc: 2
+      misc: 2,
+      cpp: 0.015
     },
     benefits: [
       {
@@ -111,7 +114,7 @@ const initialCards = [
     id: "amex-gold",
     name: "Amex Gold",
     annualFee: 325,
-    cpp: 0.018,
+    cpp: 0.015,
     rates: {
       rent: 0,
       dining: 4,
@@ -121,7 +124,8 @@ const initialCards = [
       gas: 1,
       streaming: 1,
       amazon: 1,
-      misc: 1
+      misc: 1,
+      cpp: 0.015
     },
     benefits: [
       { id: "amex-dining", label: "Dining credits", value: 120, enabled: false },
@@ -143,7 +147,8 @@ const initialCards = [
       gas: 2,
       streaming: 2,
       amazon: 2,
-      misc: 2
+      misc: 2,
+      cpp: 0.015
     },
     benefits: [
       { id: "vx-credit", label: "Annual travel credit", value: 300, enabled: true },
@@ -166,7 +171,8 @@ const initialCards = [
       gas: 1,
       streaming: 3,
       amazon: 1,
-      misc: 1
+      misc: 1,
+      cpp: 0.015
     },
     benefits: [
       { id: "csp-hotel", label: "Annual hotel credit", value: 50, enabled: false },
@@ -188,7 +194,8 @@ const initialCards = [
       gas: 2,
       streaming: 2,
       amazon: 2,
-      misc: 2
+      misc: 2,
+      cpp: 0.01
     },
     benefits: [
       { id: "apple-nftf", label: "No foreign transaction fees", value: 0, enabled: true }
@@ -208,7 +215,8 @@ const initialCards = [
       gas: 3,
       streaming: 3,
       amazon: 3,
-      misc: 3
+      misc: 3,
+      cpp: 0.01
     },
     benefits: [
       { id: "rh-no-ftf", label: "No foreign transaction fees", value: 0, enabled: true },
@@ -229,7 +237,8 @@ const initialCards = [
       gas: 2,
       streaming: 1,
       amazon: 5,
-      misc: 1
+      misc: 1,
+      cpp: 0.01
     },
     benefits: [
       { id: "amazon-prime", label: "Amazon Prime", value: -139, enabled: true },
@@ -241,8 +250,8 @@ const initialCards = [
 const defaultSpend = {
   dining: 10100,
   groceries: 1200,
-  flights: 3500,
-  travelOther: 3500,
+  flights: 0,
+  travelOther: 7000,
   rent: 49500,
   gas: 300,
   streaming: 0,
@@ -310,13 +319,13 @@ function normalizeCards(cards, categories) {
   return cards.map((card) => ({
     ...card,
     annualFee: clampNumber(card.annualFee),
-    cpp: clampNumber(card.cpp),
+    cpp: clampNumber(card.cpp ?? card.rates?.cpp ?? 0),
     rates: rateKeys.reduce((acc, key) => {
       const fallbackRate =
         key === "amazon" ? card.rates?.amazon ?? card.rates?.misc : card.rates?.[key];
       acc[key] = clampNumber(fallbackRate ?? 0);
       return acc;
-    }, {}),
+    }, { cpp: clampNumber(card.rates?.cpp ?? card.cpp ?? 0) }),
     benefits: card.benefits.map((benefit) => ({
       ...benefit,
       value: clampSignedNumber(benefit.value)
@@ -375,6 +384,7 @@ function migrateCardRates(cards) {
   return cards.map((card) => {
     let updated = false;
     const rates = { ...(card.rates || {}) };
+    let nextCpp = card.cpp;
     if (rates.travel !== undefined) {
       rates.flights = rates.flights ?? rates.travel;
       rates.travelOther = rates.travelOther ?? rates.travel;
@@ -385,11 +395,20 @@ function migrateCardRates(cards) {
       rates.amazon = rates.misc;
       updated = true;
     }
+    if (rates.cpp === undefined && nextCpp !== undefined) {
+      rates.cpp = nextCpp;
+      updated = true;
+    }
+    if (nextCpp === undefined && rates.cpp !== undefined) {
+      nextCpp = rates.cpp;
+      updated = true;
+    }
     if (!updated) {
       return card;
     }
     return {
       ...card,
+      cpp: nextCpp,
       rates
     };
   });
@@ -912,14 +931,13 @@ export default function App() {
     if (!confirmReset) {
       return;
     }
-    const defaultsById = new Map(
-      buildDefaultCards().map((card) => [card.id, card.rates])
-    );
+    const defaultsById = new Map(buildDefaultCards().map((card) => [card.id, card]));
     updateScenario((scenario) => ({
       ...scenario,
       cards: scenario.cards.map((card) => ({
         ...card,
-        rates: defaultsById.get(card.id) || card.rates
+        cpp: defaultsById.get(card.id)?.cpp ?? card.cpp,
+        rates: defaultsById.get(card.id)?.rates || card.rates
       }))
     }));
   }
@@ -991,7 +1009,7 @@ export default function App() {
     setScenarios([]);
     setActiveScenarioId("");
     try {
-      await resetState();
+      await resetState(activeUserId);
     } catch (err) {
       console.warn("Unable to reset session data", err);
     }
@@ -1264,6 +1282,26 @@ export default function App() {
     }));
   }
 
+  function handleCppChange(cardId, value) {
+    updateScenario((scenario) => ({
+      ...scenario,
+      cards: scenario.cards.map((card) => {
+        if (card.id !== cardId) {
+          return card;
+        }
+        const nextCpp = parseNumberInput(value);
+        return {
+          ...card,
+          cpp: nextCpp,
+          rates: {
+            ...card.rates,
+            cpp: nextCpp
+          }
+        };
+      })
+    }));
+  }
+
   function handleAnnualFeeChange(cardId, value) {
     updateScenario((scenario) => ({
       ...scenario,
@@ -1321,7 +1359,7 @@ export default function App() {
       name: newCard.name.trim(),
       annualFee: clampNumber(newCard.annualFee),
       cpp: clampNumber(newCard.cpp) || 0.01,
-      rates: createEmptyRates(categories),
+      rates: { ...createEmptyRates(categories), cpp: clampNumber(newCard.cpp) || 0.01 },
       benefits: []
     };
 
@@ -2103,6 +2141,24 @@ export default function App() {
                 </tr>
               </thead>
               <tbody>
+                <tr>
+                  <td>CPP (value per point)</td>
+                  {cards.map((card) => (
+                    <td key={`${card.id}-cpp`}>
+                      <div className="rate-input">
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.001"
+                          value={card.cpp}
+                          onChange={(event) =>
+                            handleCppChange(card.id, event.target.value)
+                          }
+                        />
+                      </div>
+                    </td>
+                  ))}
+                </tr>
                 {categories.map((category) => (
                   <tr key={category.key}>
                     <td>{category.label}</td>
