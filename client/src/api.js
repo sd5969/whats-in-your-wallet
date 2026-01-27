@@ -14,6 +14,7 @@ async function request(path, options = {}) {
       "Content-Type": "application/json",
       ...options.headers
     },
+    credentials: "include",
     ...options
   });
 
@@ -41,5 +42,11 @@ export function saveState(state, userId) {
   return request(withUser("/api/state", userId), {
     method: "PUT",
     body: JSON.stringify(state)
+  });
+}
+
+export function resetState(userId) {
+  return request(withUser("/api/state", userId), {
+    method: "DELETE"
   });
 }

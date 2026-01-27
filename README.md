@@ -5,7 +5,7 @@ spend, benefits, and card assignments.
 
 ## Structure
 
-- `server`: Express API with MongoDB (Mongoose)
+- `server`: Express API with in-memory session storage
 - `client`: React UI (Vite)
 
 ## Setup
@@ -16,6 +16,8 @@ spend, benefits, and card assignments.
 cp server/.env.example server/.env
 cp client/.env.example client/.env
 ```
+
+Update `server/.env` with a strong `SESSION_SECRET` for production deployments.
 
 2. Install dependencies.
 
@@ -40,55 +42,106 @@ npm run dev
 
 The UI runs at `http://localhost:5173` and the API at `http://localhost:5050`.
 
-## Export / Import Workspace
+## Storage behavior
 
-These scripts read from the `MONGODB_URI` in `server/.env`, so run them from the
-`server` directory (or ensure `server/.env` is in your working directory).
+Workspace data is stored in the server's in-memory session store and scoped to
+the browser session cookie. Clearing cookies, using an incognito window, or
+opening the app in a different browser creates a fresh workspace. Restarting
+the server clears all stored workspaces.
 
-Export to stdout:
+## Deployment (Ubuntu + Apache)
 
-```bash
-node scripts/exportWorkspace.js
-```
+This app works well with Apache serving the static client and proxying API
+requests to the Node server. The API is mounted at
+`/card_stuio/services/` so that the Express routes can still use `/api/...`
+(`GET /api/state`, `PUT /api/state`, etc.).
 
-Export to a file:
-
-```bash
-node scripts/exportWorkspace.js /path/to/workspace.json
-```
-
-Import from a file:
+### 1) Build and place the client
 
 ```bash
-node scripts/importWorkspace.js /path/to/workspace.json
+cd client
+npm install
+npm run build
 ```
 
-Import from stdin:
+Copy `client/dist` to your Apache document root for the site, e.g.
+`/var/www/card_studio/`.
+
+### 2) Configure the client API base
+
+Set the client API base to the proxied subpath:
+
+```
+VITE_API_URL=/card_stuio/services
+```
+
+Rebuild the client after changing the value.
+
+### 3) Run the server as a systemd service
+
+Example `/etc/systemd/system/card-studio.service`:
+
+```
+[Unit]
+Description=Card Studio API
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/card-studio/server
+Environment=NODE_ENV=production
+Environment=PORT=5050
+Environment=SESSION_SECRET=replace-me
+Environment=CLIENT_ORIGIN=https://your-domain.example
+ExecStart=/usr/bin/node /opt/card-studio/server/index.js
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Then:
 
 ```bash
-cat /path/to/workspace.json | node scripts/importWorkspace.js
+sudo systemctl daemon-reload
+sudo systemctl enable --now card-studio
 ```
 
-Reset the saved workspace:
+### 4) Apache reverse proxy configuration
+
+Enable proxy modules (Ubuntu):
 
 ```bash
-node scripts/resetWorkspace.js
+sudo a2enmod proxy proxy_http headers rewrite
+sudo systemctl restart apache2
 ```
 
-Export, reset, and reimport (with backup file path optional):
+Example Apache vhost snippet:
 
-```bash
-node scripts/resetWithBackup.js /path/to/workspace-backup.json
+```
+<VirtualHost *:80>
+  ServerName your-domain.example
+  DocumentRoot /var/www/card_studio
+
+  <Directory /var/www/card_studio>
+    Options FollowSymLinks
+    AllowOverride None
+    Require all granted
+  </Directory>
+
+  # Serve the React app (single-page app fallback)
+  RewriteEngine On
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^ /index.html [L]
+
+  # Proxy API to Node
+  ProxyPreserveHost On
+  ProxyPass /card_studio/services/ http://127.0.0.1:5050/
+  ProxyPassReverse /card_studio/services/ http://127.0.0.1:5050/
+</VirtualHost>
 ```
 
-Migrate spend-only into the latest defaults (keeps your spend, resets cards/benefits/assignments):
-
-```bash
-node scripts/migrateSpendOnly.js
-```
-
-Migrate spend + earning rates into the latest defaults (keeps your spend and per-card multipliers, resets benefits/assignments):
-
-```bash
-node scripts/migrateSpendAndRates.js
-```
+Notes:
+- The trailing slash matters for `ProxyPass` mappings.
+- If you use HTTPS, place the proxy config in your SSL vhost block.

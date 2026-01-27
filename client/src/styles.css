@@ -206,6 +206,12 @@ body {
   font-size: 0.9rem;
 }
 
+.hero-actions {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-start;
+}
+
 .hero-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
@@ -765,6 +771,10 @@ body {
 .scenario-row label {
   display: grid;
   gap: 8px;
+}
+
+.scenario-row {
+  margin-top: 12px;
 }
 
 .scenario-row select {
