@@ -1,0 +1,16 @@
+[Unit]
+Description=Card Studio Backend and API
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=__SERVER_DIR__
+Environment=NODE_ENV=production
+Environment=PORT=5050
+EnvironmentFile=-/etc/default/__SERVICE_NAME__
+ExecStart=/usr/bin/node __SERVER_DIR__/src/index.js
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
