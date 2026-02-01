@@ -3,6 +3,19 @@
 A full stack MERN app for comparing credit card value with configurable annual
 spend, benefits, and card assignments.
 
+## Table of contents
+
+- [Structure](#structure)
+- [Setup](#setup)
+- [Storage behavior](#storage-behavior)
+- [Deployment (Ubuntu + Apache)](#deployment-ubuntu--apache)
+  - [1) Build and place the client](#1-build-and-place-the-client)
+  - [2) Configure the client API base](#2-configure-the-client-api-base)
+  - [Example build + deploy command](#example-build--deploy-command)
+  - [3) Run the server as a systemd service](#3-run-the-server-as-a-systemd-service)
+  - [4) Apache reverse proxy configuration](#4-apache-reverse-proxy-configuration)
+  - [Subfolder hosting example](#subfolder-hosting-example)
+
 ## Structure
 
 - `server`: Express API with in-memory session storage
@@ -85,6 +98,22 @@ VITE_API_URL=/card_studio/services
 ```
 
 Rebuild the client after changing the value.
+
+#### Example build + deploy command
+
+If you want a one-liner to build and deploy the UI to an Apache doc root:
+
+```bash
+cd client
+VITE_BASE_PATH=/card_studio/ npm run build && \
+  rm -r /path/to/apache/docroot/card_studio && \
+  cp -r dist /path/to/apache/docroot/card_studio && \
+  cp .env /path/to/apache/docroot/card_studio
+```
+
+Replace `/path/to/apache/docroot` with your Apache document root. The `.env`
+copy is optional if you want the environment file alongside the deployed
+assets.
 
 ### 3) Run the server as a systemd service
 

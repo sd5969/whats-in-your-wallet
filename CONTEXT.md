@@ -53,5 +53,5 @@ This file is a short handoff for the next Codex session.
 ## Known Issues / Notes
 - Scenario comparison bar length was problematic earlier; currently uses inline width on `.scenario-bar`.
 - If scenario saves fail for many scenarios, server JSON limit was increased to 2mb.
-
+- Keep `README.md` table of contents in sync when sections change.
 
