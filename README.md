@@ -12,8 +12,8 @@ spend, benefits, and card assignments.
   - [1) Build and place the client](#1-build-and-place-the-client)
   - [2) Configure the client API base](#2-configure-the-client-api-base)
   - [Example build + deploy command](#example-build--deploy-command)
-  - [3) Run the server as a systemd service](#3-run-the-server-as-a-systemd-service)
-  - [4) Apache reverse proxy configuration](#4-apache-reverse-proxy-configuration)
+  - [3) Install the systemd service (Makefile)](#3-install-the-systemd-service-makefile)
+  - [3) Apache reverse proxy configuration](#3-apache-reverse-proxy-configuration)
   - [Subfolder hosting example](#subfolder-hosting-example)
 
 ## Structure
@@ -84,7 +84,7 @@ If you want to host the UI under a subfolder (e.g. `https://abc.com/test/`),
 set a base path before building:
 
 ```
-VITE_BASE_PATH=/test/
+VITE_BASE_PATH=/card_studio/
 ```
 
 Then rebuild the client so asset paths are generated with the subfolder prefix.
@@ -115,34 +115,27 @@ Replace `/path/to/apache/docroot` with your Apache document root. The `.env`
 copy is optional if you want the environment file alongside the deployed
 assets.
 
-### 3) Run the server as a systemd service
+### 3) Install the systemd service (Makefile)
 
-Example `/etc/systemd/system/card-studio.service`:
-
-```
-[Unit]
-Description=Card Studio API
-After=network.target
-
-[Service]
-Type=simple
-WorkingDirectory=/opt/card-studio/server
-Environment=NODE_ENV=production
-Environment=PORT=5050
-Environment=SESSION_SECRET=replace-me
-Environment=CLIENT_ORIGIN=https://your-domain.example
-ExecStart=/usr/bin/node /opt/card-studio/server/index.js
-Restart=on-failure
-
-[Install]
-WantedBy=multi-user.target
-```
-
-Then:
+From the repo root:
 
 ```bash
-sudo systemctl daemon-reload
-sudo systemctl enable --now card-studio
+make install-service
+```
+
+If the server lives elsewhere or you want a different service name:
+
+```bash
+make install-service SERVER_DIR=/opt/card-studio/server SERVICE_NAME=card-studio-backend
+```
+
+Optional overrides can be placed in `/etc/default/card-studio-backend`
+(for example `SESSION_SECRET=...` or `CLIENT_ORIGIN=...`).
+
+To remove the service:
+
+```bash
+make uninstall-service
 ```
 
 ### 4) Apache reverse proxy configuration
