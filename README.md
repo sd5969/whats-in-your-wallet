@@ -168,6 +168,9 @@ Example Apache vhost snippet:
 
   # Proxy API to Node
   ProxyPreserveHost On
+  # Ensure Express sees HTTPS so secure session cookies are issued
+  RequestHeader set X-Forwarded-Proto "https"
+  RequestHeader set X-Forwarded-Port "443"
   ProxyPass /card_studio/services/ http://127.0.0.1:5050/
   ProxyPassReverse /card_studio/services/ http://127.0.0.1:5050/
 </VirtualHost>
