@@ -1,0 +1,12 @@
+{
+  "name": "slides",
+  "version": "1.0.0",
+  "description": "Markdown-driven slide deck source",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "pptxgenjs": "^3.12.0"
+  }
+}
