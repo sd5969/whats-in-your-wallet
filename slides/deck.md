@@ -1,94 +1,88 @@
 ---
-title: Vibecoding Lessons from My First Project
-subtitle: Building a MERN app in minutes, production in days
+title: Vibecoding in Practice
+subtitle: Faster software creation, higher governance stakes
 ---
 
-# Vibecoding: What I Learned in My First Project
+# Vibecoding Changed What I Can Build
 
-- Built a full MERN app in <10 minutes after a 5+ year gap
-- Context: Enterprise OpenAI Codex licenses just rolled out
-- Goal: solve a real wallet problem fast, then harden it
+- Vibecoding turned a structured logic problem into working software, fast
+- This is materially different from brainstorming in ChatGPT
+- Extrapolation: many software ideas that were too slow to build are now viable
 
 Presenter: Sanjit Dutta
 Date: Feb 2026
-Takeaway: Vibecoding compresses the first 10% of delivery to minutes.
+Takeaway: Vibecoding lowers the activation energy of software creation.
 
 ---
 
-# The Problem + The Demo
+# The Problem and the Product
 
-**Problem:** credit card rewards changes are breaking my wallet setup
-
-**Solution:** a tool to test card portfolios and spend routing scenarios
-
-**Demo:** add a screenshot and link to the live app
+- Rewards program changes made my wallet strategy obsolete
+- I built a tool to test card portfolio setups and spend-routing scenarios
+- The app stores inputs locally so users can iterate and compare over time
 
 - Demo link: `https://lnkd.in/ew2dtgms`
 - Repo for bugs: `https://lnkd.in/ejAyzACp`
 
 ![Demo screenshot](assets/demo-screenshot.png)
-Takeaway: Real pain + real demo = instant buy‑in.
+Takeaway: Real user pain can now be translated into software in a single session.
 
 ---
 
-# Timeline: Speed vs. Production Reality
+# Proof That This Is Real
 
-- **10 minutes:** working MVP
-- **1 day (intermittent):** refine UX and logic
-- **A few days (intermittent):** production hardening
-
-Key takeaway: vibecoding accelerates starts, not finishes
+- First working application: **10 minutes**
+- Prior build estimate for similar outcome: **40+ hours**
+- Actual total to solid state: **~8 hours** with intermittent refinement
+- Business outcome from using the app: **$300+ annual wallet upside**
 
 ![Timeline graphic](assets/timeline.png)
-Takeaway: Minutes to build, days to make it durable.
+Takeaway: Time-to-value compression is real for both builders and end users.
 
 ---
 
-# What Worked (and Why It Worked)
+# Where Vibecoding Breaks Down
 
-- Clear technical language kept Codex on track
-- Fundamentals still mattered: CSS, Express.js, NoSQL, deployment
-- Treat Codex like an SDE1: fast, helpful, needs direction and review
-- Architecture decisions still drive extensibility (Codex makes many of them)
+- Dead code and legacy artifacts accumulate quickly (e.g., vestigial Mongo code)
+- Complex implementation paths often need to be blocked or rewritten
+- Debug loops can waste time and increase technical debt
+- Front-end responsiveness and visualization quality still required manual takeover
 
-**Stack:** MERN + OpenAI Codex + local storage session
+![guardrails graphic](assets/guardrails.png)
+Takeaway: AI-generated code is fast code, not automatically good code.
+
+---
+
+# Production Guardrails Are Non-Negotiable
+
+- Secrets and repository hygiene
+- Security and API hardening
+- High availability and reliability controls
+
+- Working model: free-form for POCs, structured step-by-step for production
 
 ![Stack graphic](assets/stack.png)
-Takeaway: Fundamentals + clear prompts compound speed.
+Takeaway: Speed scales only when governance scales with it.
 
 ---
 
-# Why Vibecoding Alone Isn’t Production-Safe
+# Implications for PE Tech Strategy Teams
 
-- No `.gitignore` by default → easy to commit `.env` secrets
-- Codex suggested a complex deploy path; a local session was simpler
-- Dead code + legacy artifacts (e.g., vestigial Mongo) accumulate
-- Debug loops can dig deeper holes, increasing tech debt
+- Evaluate AI code quality explicitly, not just output velocity
+- Developer productivity gains are real and should be quantified in value-creation plans
+- Agentic workflows can push delivery toward semi-autonomous execution
+- In diligence, assess AI velocity and software governance together
 
-**Guardrails I’d enforce next time:**
-- Secrets scanning + linting
-- Minimal architecture review up front
-- Explicit acceptance tests before deploy
-
-![Failure/guardrails graphic](assets/guardrails.png)
-Takeaway: Without guardrails, speed becomes fragility.
+Takeaway: The new diligence question is not "Is AI used?" but "Is it governed?"
 
 ---
 
-# Disclaimer: This Deck Was Vibecoded
+# Disclaimer and Call to Action
 
-- Built with the same workflow as the app (Codex + light human review)
-- Design iterations were prompted, generated, and refined in minutes
-- Final structure, takeaways, and edits are still mine
+- This deck itself was vibecoded, then edited and quality-controlled by me
+- The same pattern applies to delivery: rapid generation plus disciplined review
+- You do not need to be a traditional engineer to start learning this workflow
 
-Takeaway: If the deck is good, credit the human review.
+- Team ask: test Codex, Claude, or GitHub Copilot today and bring one client-relevant insight back
 
----
-
-# What I Learned About the Card / Churning Game
-
-- For NYC‑sized rent, **Bilt is hard to beat** on pure points value
-- Rent points tend to dominate the portfolio economics
-- The right “everyday” card matters less once rent is optimized
-
-Takeaway: Maxing Bilt for rent usually wins when rent is large.
+Takeaway: Start using it now, but operate it like a professional software team.
