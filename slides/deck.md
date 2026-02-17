@@ -79,10 +79,10 @@ Takeaway: The new diligence question is not "Is AI used?" but "Is it governed?"
 
 # Disclaimer and Call to Action
 
-- This deck itself was vibecoded, then edited and quality-controlled by me
+- This deck itself was 100% vibecoded; if I was presenting externally (“production”), I would have edited and quality-controlled further
 - The same pattern applies to delivery: rapid generation plus disciplined review
 - You do not need to be a traditional engineer to start learning this workflow
 
 - Team ask: test Codex, Claude, or GitHub Copilot today and bring one client-relevant insight back
 
-Takeaway: Start using it now, but operate it like a professional software team.
+Takeaway: Start using it now, but operate it like a professional software team if you’re going to sell what you make.
