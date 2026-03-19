@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vibecoding in Practice</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --pwc-orange: #FD5108;
+      --pwc-medium-orange: #FE7C39;
+      --pwc-light-orange: #FFAA72;
+      --pwc-dark: #000000;
+      --pwc-grey: #A1A8B3;
+      --pwc-medium-grey: #B5BCC4;
+      --pwc-light-gray: #CBD1D6;
+      --pwc-off-white: #EBEBEB;
+      --pwc-orange-tint-1: #FFCDA8;
+      --pwc-orange-tint-2: #FFE8D4;
+      --pwc-orange-tint-3: #FFF5ED;
+      --pwc-grey-tint-1: #DFE3E6;
+      --pwc-grey-tint-2: #EEEFF1;
+      --pwc-grey-tint-3: #F5F7F8;
+      --pwc-bg-light: #F5F7F8;
+      --pwc-status-green: #059669;
+      --pwc-status-amber: #E9B01F;
+      --pwc-status-red: #DC2626;
+      --pwc-green-bg: #ECFDF5;
+      --pwc-amber-bg: #FFF8E1;
+      --pwc-red-bg: #FEF2F2;
+      --pwc-cover-pink: #FFCDA8;
+      --pwc-cover-light-pink: #FFE8D4;
+      --slide-width: 13.33in;
+      --slide-height: 7.5in;
+    }
+
+    body {
+      font-family: 'Arial', 'Helvetica Neue', sans-serif;
+      background: #1a1a1a;
+      color: var(--pwc-dark);
+      line-height: 1.4;
+      overflow: hidden;
+      height: 100vh;
+    }
+
+    .slide-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      position: relative;
+    }
+
+    .slide {
+      width: var(--slide-width);
+      height: var(--slide-height);
+      background: white;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      border: 1px solid var(--pwc-light-gray);
+      position: absolute;
+      overflow: hidden;
+      flex-shrink: 0;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      /* Scale to fit viewport */
+      transform-origin: center center;
+    }
+
+    .slide.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* ─── NAVIGATION CONTROLS ─── */
+    .nav-controls {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      z-index: 100;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(8px);
+      padding: 8px 20px;
+      border-radius: 40px;
+    }
+
+    .nav-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(255,255,255,0.12);
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    .nav-btn:hover {
+      background: var(--pwc-orange);
+    }
+
+    .nav-btn:disabled {
+      opacity: 0.25;
+      cursor: default;
+      background: rgba(255,255,255,0.06);
+    }
+
+    .nav-counter {
+      font-size: 13px;
+      color: rgba(255,255,255,0.7);
+      font-variant-numeric: tabular-nums;
+      min-width: 48px;
+      text-align: center;
+    }
+
+    .nav-progress {
+      width: 120px;
+      height: 3px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .nav-progress-bar {
+      height: 100%;
+      background: var(--pwc-orange);
+      border-radius: 2px;
+      transition: width 0.3s ease;
+    }
+
+    .slide-content {
+      padding: 52px 56px 0 56px;
+      height: calc(100% - 44px);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .slide-footer {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 44px;
+      padding: 0 44px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: var(--pwc-grey);
+      border-top: 1px solid var(--pwc-grey-tint-1);
+      background: white;
+    }
+
+    .footer-logo { height: 18px; }
+    .footer-title { font-size: 11px; color: var(--pwc-grey); }
+    .footer-page { font-size: 11px; color: var(--pwc-grey); }
+
+    /* ─── COVER SLIDE ─── */
+    .slide.cover {
+      background: linear-gradient(135deg, #FFFFFF 0%, #FFE8D4 40%, #FFCDA8 100%);
+    }
+    .slide.cover .slide-footer { display: none !important; }
+
+    .cover-content {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 0 0 0 72px;
+    }
+
+    .cover-logo {
+      position: absolute;
+      top: 40px;
+      left: 56px;
+      height: 36px;
+    }
+
+    .cover-accent-bar {
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 3.6in;
+      background: linear-gradient(180deg, #FFCDA8 0%, #FE7C39 60%, #FD5108 100%);
+      opacity: 0.18;
+    }
+
+    .cover-eyebrow {
+      font-family: 'Arial', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--pwc-medium-orange);
+      margin-bottom: 20px;
+    }
+
+    .cover-title {
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: 58px;
+      font-weight: 400;
+      line-height: 1.1;
+      color: #0C0C0C;
+      max-width: 8.2in;
+      margin-bottom: 24px;
+    }
+
+    .cover-title strong {
+      color: var(--pwc-orange);
+    }
+
+    .cover-subtitle {
+      font-family: 'Arial', sans-serif;
+      font-size: 20px;
+      font-weight: 300;
+      color: #434A54;
+      max-width: 7in;
+      margin-bottom: 48px;
+      line-height: 1.5;
+    }
+
+    .cover-byline {
+      font-family: 'Arial', sans-serif;
+      font-size: 13px;
+      color: var(--pwc-grey);
+      display: flex;
+      gap: 32px;
+    }
+
+    /* ─── SLIDE TITLES ─── */
+    .slide-title {
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: 34px;
+      font-weight: 400;
+      color: #0C0C0C;
+      line-height: 1.2;
+      margin-bottom: 32px;
+      flex-shrink: 0;
+    }
+
+    .slide-title strong { font-weight: 700; }
+
+    /* ─── SLIDE 2: HERO STAT ─── */
+    .hero-stat-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      flex: 1;
+      align-items: center;
+    }
+
+    .hero-statement {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .hero-statement p {
+      font-size: 18px;
+      color: #434A54;
+      line-height: 1.6;
+    }
+
+    .hero-statement .highlight-line {
+      font-size: 16px;
+      color: var(--pwc-grey);
+      border-left: 3px solid var(--pwc-orange-tint-1);
+      padding-left: 16px;
+    }
+
+    .hero-stats-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .big-stat-card {
+      background: var(--pwc-grey-tint-3);
+      border-radius: 8px;
+      padding: 28px 32px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .big-stat-card.accent {
+      background: var(--pwc-orange-tint-3);
+      border-left: 4px solid var(--pwc-orange);
+    }
+
+    .big-stat-number {
+      font-family: Georgia, serif;
+      font-size: 52px;
+      font-weight: 700;
+      color: var(--pwc-orange);
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .big-stat-card:not(.accent) .big-stat-number {
+      color: #0C0C0C;
+    }
+
+    .big-stat-label {
+      font-size: 15px;
+      color: #434A54;
+      line-height: 1.5;
+    }
+
+    .big-stat-sublabel {
+      font-size: 12px;
+      color: var(--pwc-grey);
+      margin-top: 4px;
+    }
+
+    /* ─── SLIDE 3: TWO-COLUMN SPLIT ─── */
+    .split-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .split-left {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .bullet-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 16px 18px;
+      background: var(--pwc-grey-tint-3);
+      border-radius: 6px;
+    }
+
+    .bullet-icon {
+      color: var(--pwc-orange);
+      font-size: 16px;
+      margin-top: 2px;
+      flex-shrink: 0;
+      width: 20px;
+      text-align: center;
+    }
+
+    .bullet-text {
+      font-size: 15px;
+      color: #0C0C0C;
+      line-height: 1.5;
+    }
+
+    .link-row {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .link-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--pwc-grey);
+      background: var(--pwc-grey-tint-2);
+      border-radius: 4px;
+      padding: 6px 12px;
+    }
+
+    .split-right {
+      background: var(--pwc-grey-tint-3);
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .split-right img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top;
+    }
+
+    /* ─── SLIDE 4: STAT CARDS 2x2 ─── */
+    .stat-cards-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 20px;
+      flex: 1;
+    }
+
+    .stat-card {
+      background: white;
+      border: 1px solid var(--pwc-grey-tint-1);
+      border-radius: 8px;
+      padding: 28px 28px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--pwc-orange);
+    }
+
+    .stat-card-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: var(--pwc-orange-tint-3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--pwc-orange);
+      font-size: 16px;
+    }
+
+    .stat-card-value {
+      font-family: Georgia, serif;
+      font-size: 44px;
+      font-weight: 700;
+      color: var(--pwc-orange);
+      line-height: 1;
+    }
+
+    .stat-card-label {
+      font-size: 14px;
+      color: var(--pwc-grey);
+      line-height: 1.4;
+    }
+
+    .stat-card-sublabel {
+      font-size: 11px;
+      color: var(--pwc-medium-grey);
+    }
+
+    /* ─── SLIDE 5: FAILURE MODES — HORIZONTAL STRIPS ─── */
+    .risk-strips {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      flex: 1;
+    }
+
+    .risk-strip {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      background: white;
+      border: 1px solid var(--pwc-grey-tint-1);
+      border-radius: 6px;
+      padding: 18px 24px;
+      border-left: 4px solid var(--pwc-orange-tint-1);
+    }
+
+    .risk-strip-number {
+      font-family: Georgia, serif;
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--pwc-orange-tint-1);
+      line-height: 1;
+      flex-shrink: 0;
+      width: 36px;
+      text-align: center;
+    }
+
+    .risk-strip-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      background: var(--pwc-orange-tint-3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--pwc-medium-orange);
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .risk-strip-content { flex: 1; }
+
+    .risk-strip-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #0C0C0C;
+      margin-bottom: 4px;
+    }
+
+    .risk-strip-desc {
+      font-size: 13px;
+      color: #434A54;
+      line-height: 1.5;
+    }
+
+    /* ─── SLIDE 6: PILLARS ─── */
+    .pillars-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 20px;
+      flex: 1;
+    }
+
+    .pillar-card {
+      background: white;
+      border: 1px solid var(--pwc-grey-tint-1);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .pillar-header {
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .pillar-header-0 { background: var(--pwc-orange); }
+    .pillar-header-1 { background: var(--pwc-medium-orange); }
+    .pillar-header-2 { background: var(--pwc-light-orange); }
+
+    .pillar-header-icon {
+      font-size: 22px;
+      color: white;
+    }
+
+    .pillar-header-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: white;
+      line-height: 1.3;
+    }
+
+    .pillar-body {
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      flex: 1;
+    }
+
+    .pillar-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 14px;
+      color: #434A54;
+      line-height: 1.5;
+    }
+
+    .pillar-item i {
+      color: var(--pwc-orange);
+      font-size: 12px;
+      margin-top: 4px;
+      flex-shrink: 0;
+    }
+
+    .pillar-model-note {
+      margin-top: 20px;
+      padding: 16px 20px;
+      background: var(--pwc-orange-tint-3);
+      border-radius: 6px;
+      font-size: 14px;
+      color: #434A54;
+      line-height: 1.5;
+      flex-shrink: 0;
+    }
+
+    .pillar-model-note strong {
+      color: var(--pwc-orange);
+    }
+
+    /* ─── SLIDE 7: IMPLICATIONS MATRIX ─── */
+    .matrix-layout {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      flex: 1;
+    }
+
+    .matrix-table {
+      width: 100%;
+      border-collapse: collapse;
+      flex: 1;
+    }
+
+    .matrix-table thead th {
+      background: #0C0C0C;
+      color: white;
+      padding: 12px 20px;
+      font-size: 13px;
+      font-weight: 700;
+      text-align: left;
+    }
+
+    .matrix-table thead th:first-child { border-radius: 0; width: 38%; }
+
+    .matrix-table tbody tr:nth-child(odd) td { background: white; }
+    .matrix-table tbody tr:nth-child(even) td { background: var(--pwc-grey-tint-3); }
+
+    .matrix-table td {
+      padding: 14px 20px;
+      font-size: 14px;
+      color: #0C0C0C;
+      border: 1px solid var(--pwc-grey-tint-2);
+      vertical-align: top;
+      line-height: 1.5;
+    }
+
+    .matrix-table td.implication {
+      font-weight: 700;
+      color: #0C0C0C;
+    }
+
+    .matrix-table td.action {
+      color: #434A54;
+    }
+
+    .matrix-table td.outcome {
+      color: var(--pwc-orange);
+      font-weight: 600;
+    }
+
+    .matrix-headline {
+      font-size: 15px;
+      color: #434A54;
+      border-left: 3px solid var(--pwc-orange);
+      padding-left: 16px;
+      line-height: 1.5;
+      flex-shrink: 0;
+    }
+
+    /* ─── SLIDE 8: CTA ─── */
+    .cta-panel {
+      flex: 1;
+      background: #1F232A;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      padding: 40px 48px;
+      gap: 28px;
+    }
+
+    .cta-title {
+      font-family: Georgia, serif;
+      font-size: 32px;
+      font-weight: 400;
+      color: white;
+      line-height: 1.3;
+    }
+
+    .cta-title strong {
+      color: var(--pwc-light-orange);
+    }
+
+    .cta-columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      flex: 1;
+    }
+
+    .cta-column-header {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.8px;
+      text-transform: uppercase;
+      color: var(--pwc-grey);
+      margin-bottom: 14px;
+    }
+
+    .cta-bullet {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .cta-bullet i {
+      color: var(--pwc-medium-orange);
+      font-size: 14px;
+      margin-top: 3px;
+      flex-shrink: 0;
+    }
+
+    .cta-bullet-text {
+      font-size: 15px;
+      color: #C8CDD5;
+      line-height: 1.5;
+    }
+
+    .cta-action-bar {
+      background: var(--pwc-orange);
+      border-radius: 6px;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .cta-action-bar i {
+      color: white;
+      font-size: 16px;
+    }
+
+    .cta-action-text {
+      font-size: 14px;
+      font-weight: 700;
+      color: white;
+      line-height: 1.4;
+    }
+
+    /* ─── PRINT ─── */
+    @media print {
+      body { background: white; overflow: visible; height: auto; }
+      .slide-container { display: block; height: auto; }
+      .slide { position: relative !important; opacity: 1 !important; pointer-events: auto !important; transform: none !important; box-shadow: none; margin: 0; page-break-after: always; page-break-inside: avoid; }
+      .nav-controls { display: none !important; }
+    }
+    @page { size: 13.33in 7.5in; margin: 0; }
+  </style>
+</head>
+<body>
+<div class="slide-container">
+
+  <!-- ═══════════════════════════════════════════════════════════
+       SLIDE 1: COVER
+  ════════════════════════════════════════════════════════════════ -->
+  <div class="slide cover">
+    <div class="cover-accent-bar"></div>
+    <img class="cover-logo" src="assets/logo/pwc_logo.png" alt="PwC">
+    <div class="cover-content">
+      <div class="cover-eyebrow">Technology Strategy</div>
+      <div class="cover-title">Vibecoding<br>in <strong>Practice</strong></div>
+      <div class="cover-subtitle">Faster software creation, higher governance stakes</div>
+      <div class="cover-byline">
+        <span>Sanjit Dutta</span>
+        <span>February 2026</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       SLIDE 2: KEY INSIGHT — Stat Hero
+  ════════════════════════════════════════════════════════════════ -->
+  <div class="slide">
+    <div class="slide-content">
+      <div class="slide-title">Vibecoding compressed a <strong>40-hour build</strong> into a single afternoon</div>
+      <div class="hero-stat-layout">
+        <div class="hero-statement">
+          <p>I set out to solve a real problem: rewards program changes made my credit card strategy obsolete. Using an AI coding agent, I built working software — not a prototype, not a script — in a single afternoon session.</p>
+          <p>This is materially different from brainstorming in ChatGPT. The agent wrote, tested, and iterated on code autonomously. I directed; it built.</p>
+          <div class="highlight-line">Many software ideas that were previously too slow or expensive to build are now viable. The activation energy of software creation has dropped dramatically.</div>
+        </div>
+        <div class="hero-stats-panel">
+          <div class="big-stat-card accent">
+            <div>
+              <div class="big-stat-number">10 min</div>
+              <div class="big-stat-label">Time to first working application</div>
+              <div class="big-stat-sublabel">From blank repo to running app</div>
+            </div>
+          </div>
+          <div class="big-stat-card">
+            <div>
+              <div class="big-stat-number">40+ hrs</div>
+              <div class="big-stat-label">Prior estimate for equivalent outcome</div>
+              <div class="big-stat-sublabel">Traditional development approach</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <img class="footer-logo" src="assets/logo/pwc_logo_small.png" alt="PwC">
+      <span class="footer-title">Vibecoding in Practice</span>
+      <span class="footer-page">1</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       SLIDE 3: THE PRODUCT — Two-column split
+  ════════════════════════════════════════════════════════════════ -->
+  <div class="slide">
+    <div class="slide-content">
+      <div class="slide-title">A credit card optimizer built in hours to solve a <strong>real financial problem</strong></div>
+      <div class="split-layout">
+        <div class="split-left">
+          <div class="bullet-item">
+            <div class="bullet-icon"><i class="fas fa-circle-exclamation"></i></div>
+            <div class="bullet-text">Rewards program changes made my existing wallet strategy obsolete — I needed a way to model and compare card portfolios quickly</div>
+          </div>
+          <div class="bullet-item">
+            <div class="bullet-icon"><i class="fas fa-sliders"></i></div>
+            <div class="bullet-text">Built a tool to configure card setups, spend categories, and benefit values — then compare routing scenarios side-by-side</div>
+          </div>
+          <div class="bullet-item">
+            <div class="bullet-icon"><i class="fas fa-floppy-disk"></i></div>
+            <div class="bullet-text">Workspace persists across sessions so users can iterate over time as card terms and personal spend change</div>
+          </div>
+          <div class="bullet-item">
+            <div class="bullet-icon"><i class="fas fa-dollar-sign"></i></div>
+            <div class="bullet-text"><strong>$300+ annual wallet upside</strong> identified and captured by running scenarios through the app</div>
+          </div>
+          <div class="link-row">
+            <span class="link-chip"><i class="fas fa-arrow-up-right-from-square"></i> Demo: lnkd.in/ew2dtgms</span>
+            <span class="link-chip"><i class="fas fa-code-branch"></i> Repo: lnkd.in/ejAyzACp</span>
+          </div>
+        </div>
+        <div class="split-right">
+          <img src="assets/demo-screenshot.png" alt="App screenshot">
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <img class="footer-logo" src="assets/logo/pwc_logo_small.png" alt="PwC">
+      <span class="footer-title">Vibecoding in Practice</span>
+      <span class="footer-page">2</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       SLIDE 4: PROOF POINTS — 2x2 Stat Cards
+  ════════════════════════════════════════════════════════════════ -->
+  <div class="slide" style="background: var(--pwc-grey-tint-3);">
+    <div class="slide-content">
+      <div class="slide-title">The numbers make the case: <strong>speed, savings, and real-world value</strong></div>
+      <div class="stat-cards-grid">
+        <div class="stat-card">
+          <div class="stat-card-icon"><i class="fas fa-bolt"></i></div>
+          <div class="stat-card-value">10 min</div>
+          <div class="stat-card-label">Time to first working application</div>
+          <div class="stat-card-sublabel">From blank repo to running, functional app</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-icon"><i class="fas fa-clock"></i></div>
+          <div class="stat-card-value">40+ hrs</div>
+          <div class="stat-card-label">Prior build estimate for equivalent outcome</div>
+          <div class="stat-card-sublabel">Traditional software development cycle</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-icon"><i class="fas fa-hourglass-half"></i></div>
+          <div class="stat-card-value">~8 hrs</div>
+          <div class="stat-card-label">Actual time to solid, production-ready state</div>
+          <div class="stat-card-sublabel">Including intermittent refinement and QA</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-icon"><i class="fas fa-dollar-sign"></i></div>
+          <div class="stat-card-value">$300+</div>
+          <div class="stat-card-label">Annual wallet upside identified</div>
+          <div class="stat-card-sublabel">Real financial value from using the app</div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer" style="background: var(--pwc-grey-tint-3); border-top-color: var(--pwc-grey-tint-1);">
+      <img class="footer-logo" src="assets/logo/pwc_logo_small.png" alt="PwC">
+      <span class="footer-title">Vibecoding in Practice</span>
+      <span class="footer-page">3</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       SLIDE 5: FAILURE MODES — Horizontal Strips
+  ════════════════════════════════════════════════════════════════ -->
+  <div class="slide">
+    <div class="slide-content">
+      <div class="slide-title">AI-generated code is <strong>fast code</strong> — not automatically good code</div>
+      <div class="risk-strips">
+        <div class="risk-strip">
+          <div class="risk-strip-icon"><i class="fas fa-trash"></i></div>
+          <div class="risk-strip-content">
+            <div class="risk-strip-title">Dead code and legacy artifacts accumulate quickly</div>
+            <div class="risk-strip-desc">Vestigial database drivers, unused imports, and orphaned logic persist unless actively pruned. Technical debt accrues by default.</div>
+          </div>
+        </div>
+        <div class="risk-strip">
+          <div class="risk-strip-icon"><i class="fas fa-arrows-spin"></i></div>
+          <div class="risk-strip-content">
+            <div class="risk-strip-title">Debug loops can waste time and deepen debt</div>
+            <div class="risk-strip-desc">When the agent enters a retry spiral on a complex bug, it often produces workarounds rather than root-cause fixes — increasing fragility.</div>
+          </div>
+        </div>
+        <div class="risk-strip">
+          <div class="risk-strip-icon"><i class="fas fa-road-barrier"></i></div>
+          <div class="risk-strip-content">
+            <div class="risk-strip-title">Complex implementation paths need human blocking</div>
+            <div class="risk-strip-desc">Architecture decisions — data models, API contracts, state management — require deliberate design. AI defaults to the simplest working solution.</div>
+          </div>
+        </div>
+        <div class="risk-strip">
+          <div class="risk-strip-icon"><i class="fas fa-display"></i></div>
+          <div class="risk-strip-content">
+            <div class="risk-strip-title">Front-end quality required manual takeover</div>
+            <div class="risk-strip-desc">Responsive layouts, data visualization, and interaction design still demand human judgment. The AI produced functional but unpolished UI.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <img class="footer-logo" src="assets/logo/pwc_logo_small.png" alt="PwC">
+      <span class="footer-title">Vibecoding in Practice</span>
+      <span class="footer-page">4</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       SLIDE 6: GUARDRAILS — 3 Pillars
+  ════════════════════════════════════════════════════════════════ -->
+  <div class="slide">
+    <div class="slide-content">
+      <div class="slide-title">Production guardrails are non-negotiable — <strong>speed scales only when governance scales with it</strong></div>
+      <div style="display: flex; flex-direction: column; flex: 1; gap: 20px;">
+        <div class="pillars-layout">
+          <div class="pillar-card">
+            <div class="pillar-header pillar-header-0">
+              <div class="pillar-header-icon"><i class="fas fa-key"></i></div>
+              <div class="pillar-header-title">Secrets &amp; Repository Hygiene</div>
+            </div>
+            <div class="pillar-body">
+              <div class="pillar-item"><i class="fas fa-check"></i> No credentials in version control</div>
+              <div class="pillar-item"><i class="fas fa-check"></i> .env files excluded from commits</div>
+              <div class="pillar-item"><i class="fas fa-check"></i> Branch protection and signed commits</div>
+              <div class="pillar-item"><i class="fas fa-check"></i> Dependency audit before production deploy</div>
+            </div>
+          </div>
+          <div class="pillar-card">
+            <div class="pillar-header pillar-header-1">
+              <div class="pillar-header-icon"><i class="fas fa-shield-halved"></i></div>
+              <div class="pillar-header-title">Security &amp; API Hardening</div>
+            </div>
+            <div class="pillar-body">
+              <div class="pillar-item"><i class="fas fa-check"></i> Input validation at all API boundaries</div>
+              <div class="pillar-item"><i class="fas fa-check"></i> Session management with signed cookies</div>
+              <div class="pillar-item"><i class="fas fa-check"></i> Rate limiting and CORS enforcement</div>
+              <div class="pillar-item"><i class="fas fa-check"></i> HTTPS + reverse proxy for all traffic</div>
+            </div>
+          </div>
+          <div class="pillar-card">
+            <div class="pillar-header pillar-header-2">
+              <div class="pillar-header-icon"><i class="fas fa-gauge-high"></i></div>
+              <div class="pillar-header-title">High Availability &amp; Reliability</div>
+            </div>
+            <div class="pillar-body">
+              <div class="pillar-item"><i class="fas fa-check"></i> Systemd service with auto-restart</div>
+              <div class="pillar-item"><i class="fas fa-check"></i> Process supervision and crash recovery</div>
+              <div class="pillar-item"><i class="fas fa-check"></i> Structured error logging</div>
+              <div class="pillar-item"><i class="fas fa-check"></i> Build and deploy pipeline with rollback</div>
+            </div>
+          </div>
+        </div>
+        <div class="pillar-model-note">
+          <strong>Working model:</strong> Free-form, agent-led exploration for POCs and internal tools &mdash; structured, step-by-step with human review checkpoints for anything production-facing or client-visible.
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <img class="footer-logo" src="assets/logo/pwc_logo_small.png" alt="PwC">
+      <span class="footer-title">Vibecoding in Practice</span>
+      <span class="footer-page">5</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       SLIDE 7: PE IMPLICATIONS — Table
+  ════════════════════════════════════════════════════════════════ -->
+  <div class="slide" style="background: var(--pwc-grey-tint-3);">
+    <div class="slide-content">
+      <div class="slide-title">The new diligence question is not <em>"Is AI used?"</em> but <strong>"Is it governed?"</strong></div>
+      <div class="matrix-layout">
+        <div class="matrix-headline">Four concrete implications for PE tech strategy and value-creation teams</div>
+        <table class="matrix-table">
+          <thead>
+            <tr>
+              <th>Implication</th>
+              <th>What this means in practice</th>
+              <th>Value-creation angle</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="implication">Evaluate AI code quality, not just velocity</td>
+              <td class="action">Audit code review practices, test coverage, and debt accumulation rate at portfolio companies using AI tools</td>
+              <td class="outcome">Reduce hidden technical debt that compresses exit multiples</td>
+            </tr>
+            <tr>
+              <td class="implication">Quantify developer productivity gains</td>
+              <td class="action">Build AI productivity metrics into 100-day plans — output per engineer, time-to-feature, defect rates</td>
+              <td class="outcome">Monetize efficiency as margin improvement in value-creation plans</td>
+            </tr>
+            <tr>
+              <td class="implication">Assess agentic workflow readiness</td>
+              <td class="action">Evaluate whether portfolio dev teams have the process maturity to supervise and govern semi-autonomous agents</td>
+              <td class="outcome">Identify acceleration opportunities and governance gaps early</td>
+            </tr>
+            <tr>
+              <td class="implication">Diligence AI velocity and governance together</td>
+              <td class="action">In due diligence, pair "how much AI is used?" with "how is output reviewed, tested, and deployed?"</td>
+              <td class="outcome">Flag governance risk before it becomes a post-close liability</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="slide-footer" style="background: var(--pwc-grey-tint-3); border-top-color: var(--pwc-grey-tint-1);">
+      <img class="footer-logo" src="assets/logo/pwc_logo_small.png" alt="PwC">
+      <span class="footer-title">Vibecoding in Practice</span>
+      <span class="footer-page">6</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       SLIDE 8: CTA
+  ════════════════════════════════════════════════════════════════ -->
+  <div class="slide">
+    <div class="slide-content">
+      <div class="slide-title" style="margin-bottom: 20px;">Start using it now — <strong>operate it like a professional software team</strong></div>
+      <div class="cta-panel">
+        <div class="cta-title">The same pattern applies to <strong>delivery</strong>:<br>rapid generation + disciplined review</div>
+        <div class="cta-columns">
+          <div>
+            <div class="cta-column-header">Context</div>
+            <div class="cta-bullet"><i class="fas fa-circle-info"></i><div class="cta-bullet-text">This deck itself was 100% vibecoded. If presenting externally or to clients, the same rapid generation + structured editorial review would apply.</div></div>
+            <div class="cta-bullet"><i class="fas fa-circle-info"></i><div class="cta-bullet-text">You do not need to be a traditional engineer to start learning this workflow — but you do need to operate it with engineering discipline.</div></div>
+          </div>
+          <div>
+            <div class="cta-column-header">Team Ask</div>
+            <div class="cta-bullet"><i class="fas fa-arrow-right"></i><div class="cta-bullet-text">Test Codex, Claude Code, or GitHub Copilot Workspace on one real task this week</div></div>
+            <div class="cta-bullet"><i class="fas fa-arrow-right"></i><div class="cta-bullet-text">Bring one client-relevant insight back to the group — speed observed, failure mode hit, governance gap surfaced</div></div>
+            <div class="cta-bullet"><i class="fas fa-arrow-right"></i><div class="cta-bullet-text">Consider: where in your portfolio does vibecoding velocity create diligence or delivery risk today?</div></div>
+          </div>
+        </div>
+        <div class="cta-action-bar">
+          <i class="fas fa-rocket"></i>
+          <div class="cta-action-text">The window for establishing AI governance frameworks is now — before velocity becomes liability at scale</div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <img class="footer-logo" src="assets/logo/pwc_logo_small.png" alt="PwC">
+      <span class="footer-title">Vibecoding in Practice</span>
+      <span class="footer-page">7</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- Navigation Controls -->
+<div class="nav-controls">
+  <button class="nav-btn" id="prevBtn" aria-label="Previous slide"><i class="fas fa-chevron-left"></i></button>
+  <div class="nav-progress"><div class="nav-progress-bar" id="progressBar"></div></div>
+  <span class="nav-counter" id="navCounter"></span>
+  <button class="nav-btn" id="nextBtn" aria-label="Next slide"><i class="fas fa-chevron-right"></i></button>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let current = 0;
+
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const counter = document.getElementById('navCounter');
+  const progressBar = document.getElementById('progressBar');
+
+  function fitSlides() {
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const navHeight = 76; // nav bar + bottom margin
+    const padding = 24;   // breathing room on all sides
+    const availW = vw - padding * 2;
+    const availH = vh - padding - navHeight;
+    const sw = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--slide-width')) * 96;
+    const sh = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--slide-height')) * 96;
+    const scale = Math.min(availW / sw, availH / sh);
+    slides.forEach(s => { s.style.transform = `scale(${scale})`; });
+  }
+
+  function showSlide(index) {
+    current = Math.max(0, Math.min(index, total - 1));
+    slides.forEach((s, i) => s.classList.toggle('active', i === current));
+    prevBtn.disabled = current === 0;
+    nextBtn.disabled = current === total - 1;
+    counter.textContent = `${current + 1} / ${total}`;
+    progressBar.style.width = `${((current + 1) / total) * 100}%`;
+  }
+
+  prevBtn.addEventListener('click', () => showSlide(current - 1));
+  nextBtn.addEventListener('click', () => showSlide(current + 1));
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); showSlide(current + 1); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); showSlide(current - 1); }
+    if (e.key === 'Home') { e.preventDefault(); showSlide(0); }
+    if (e.key === 'End') { e.preventDefault(); showSlide(total - 1); }
+  });
+
+  window.addEventListener('load', () => { fitSlides(); showSlide(0); });
+  window.addEventListener('resize', fitSlides);
+</script>
+</body>
+</html>
